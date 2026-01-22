@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Temporal API Explorer</title>
+  <style>
+    :root {
+      --primary-color: #3498db;
+      --secondary-color: #2c3e50;
+      --accent-color: #e74c3c;
+      --light-bg: #f5f5f5;
+      --dark-bg: #34495e;
+      --text-color: #333;
+      --light-text: #fff;
+      --border-radius: 8px;
+      --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: var(--text-color);
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem;
+      background-color: var(--light-bg);
+    }
+    
+    header {
+      background-color: var(--secondary-color);
+      color: var(--light-text);
+      padding: 1rem 2rem;
+      border-radius: var(--border-radius);
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    h1, h2, h3 {
+      color: var(--secondary-color);
+    }
+    
+    header h1 {
+      color: var(--light-text);
+      margin: 0;
+    }
+    
+    .container {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 2rem;
+    }
+    
+    .sidebar {
+      background-color: var(--dark-bg);
+      color: var(--light-text);
+      padding: 1.5rem;
+      border-radius: var(--border-radius);
+      height: fit-content;
+    }
+    
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .sidebar li {
+      margin-bottom: 0.5rem;
+      padding: 0.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    
+    .sidebar li:hover, .sidebar li.active {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .sidebar li.active {
+      background-color: var(--primary-color);
+    }
+    
+    .content {
+      background-color: white;
+      padding: 2rem;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+    }
+    
+    .section {
+      display: none;
+    }
+    
+    .section.active {
+      display: block;
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+    
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+    
+    button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background-color 0.3s;
+    }
+    
+    button:hover {
+      background-color: #2980b9;
+    }
+    
+    .result {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background-color: var(--light-bg);
+      border-radius: var(--border-radius);
+      border-left: 4px solid var(--primary-color);
+    }
+    
+    .result pre {
+      margin: 0;
+      white-space: pre-wrap;
+      font-family: monospace;
+    }
+    
+    .timezone-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .timezone-card {
+      background-color: var(--light-bg);
+      padding: 1rem;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+    }
+    
+    .timezone-card h4 {
+      margin-top: 0;
+      color: var(--primary-color);
+    }
+    
+    .inline-form {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-end;
+    }
+    
+    .inline-form .form-group {
+      flex: 1;
+    }
+    
+    .inline-form button {
+      height: 38px;
+    }
+    
+    /* Time Tracker Styles */
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    
+    .time-entries-container {
+      margin-top: 1.5rem;
+      margin-bottom: 2rem;
+      overflow-x: auto;
+    }
+    
+    #time-entries-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1.5rem;
+    }
+    
+    #time-entries-table th,
+    #time-entries-table td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    
+    #time-entries-table th {
+      background-color: var(--light-bg);
+      font-weight: 600;
+    }
+    
+    #time-entries-table tr:hover,
+    #saved-entries-table tr:hover {
+      background-color: rgba(52, 152, 219, 0.05);
+    }
+    
+    .entry-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .entry-actions button,
+    .delete-entry-btn {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.875rem;
+      background-color: var(--accent-color);
+      border: none;
+      border-radius: 4px;
+      color: white;
+      cursor: pointer;
+    }
+    
+    .edit-btn {
+      background-color: var(--primary-color);
+    }
+    
+    .delete-btn {
+      background-color: var(--accent-color);
+    }
+    
+    .saved-entries-container {
+      margin-top: 1.5rem;
+      margin-bottom: 2rem;
+      overflow-x: auto;
+    }
+    
+    #saved-entries-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1.5rem;
+    }
+    
+    #saved-entries-table th,
+    #saved-entries-table td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    
+    #saved-entries-table th {
+      background-color: var(--light-bg);
+      font-weight: 600;
+    }
+    
+    textarea {
+      width: 100%;
+      min-height: 80px;
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-family: inherit;
+      resize: vertical;
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+      
+      .inline-form {
+        flex-direction: column;
+      }
+      
+      .inline-form button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Temporal API Explorer</h1>
+    <div>
+      <span id="current-time"></span>
+    </div>
+  </header>
+  
+  <div class="container">
+    <div class="sidebar">
+      <ul>
+        <li data-section="now" class="active">Current Date & Time</li>
+        <li data-section="create">Create Date & Time</li>
+        <li data-section="timezone">Time Zone Handling</li>
+        <li data-section="arithmetic">Date/Time Arithmetic</li>
+        <li data-section="duration">Durations</li>
+        <li data-section="calendar">Calendars</li>
+        <li data-section="practical">Practical Examples</li>
+        <li data-section="timetracker">Time Tracker</li>
+      </ul>
+    </div>
+    
+    <div class="content">
+      <!-- Current Date & Time Section -->
+      <div id="now" class="section active">
+        <h2>Current Date & Time</h2>
+        <p>Explore the current date and time in different Temporal formats.</p>
+        
+        <button id="refresh-now">Refresh</button>
+        
+        <div class="result">
+          <pre id="now-result"></pre>
+        </div>
+      </div>
+      
+      <!-- Create Date & Time Section -->
+      <div id="create" class="section">
+        <h2>Create Date & Time</h2>
+        <p>Create dates and times in different Temporal formats.</p>
+        
+        <h3>Create a Date</h3>
+        <div class="inline-form">
+          <div class="form-group">
+            <label for="create-year">Year</label>
+            <input type="number" id="create-year" value="2023">
+          </div>
+          <div class="form-group">
+            <label for="create-month">Month</label>
+            <input type="number" id="create-month" min="1" max="12" value="1">
+          </div>
+          <div class="form-group">
+            <label for="create-day">Day</label>
+            <input type="number" id="create-day" min="1" max="31" value="1">
+          </div>
+          <button id="create-date-btn">Create Date</button>
+        </div>
+        
+        <h3>Create a Time</h3>
+        <div class="inline-form">
+          <div class="form-group">
+            <label for="create-hour">Hour</label>
+            <input type="number" id="create-hour" min="0" max="23" value="12">
+          </div>
+          <div class="form-group">
+            <label for="create-minute">Minute</label>
+            <input type="number" id="create-minute" min="0" max="59" value="0">
+          </div>
+          <div class="form-group">
+            <label for="create-second">Second</label>
+            <input type="number" id="create-second" min="0" max="59" value="0">
+          </div>
+          <button id="create-time-btn">Create Time</button>
+        </div>
+        
+        <h3>Create a DateTime</h3>
+        <div class="form-group">
+          <label for="create-iso">ISO String (e.g., 2023-01-01T12:00:00)</label>
+          <input type="text" id="create-iso" value="2023-01-01T12:00:00">
+        </div>
+        <button id="create-datetime-btn">Create DateTime</button>
+        
+        <div class="result">
+          <pre id="create-result"></pre>
+        </div>
+      </div>
+      
+      <!-- Time Zone Handling Section -->
+      <div id="timezone" class="section">
+        <h2>Time Zone Handling</h2>
+        <p>Explore how Temporal handles different time zones.</p>
+        
+        <div class="form-group">
+          <label for="timezone-datetime">DateTime (ISO String)</label>
+          <input type="text" id="timezone-datetime" value="2023-01-01T12:00:00">
+        </div>
+        
+        <div class="timezone-grid">
+          <div class="timezone-card">
+            <h4>New York</h4>
+            <button class="timezone-btn" data-timezone="America/New_York">Show</button>
+            <div class="timezone-result"></div>
+          </div>
+          <div class="timezone-card">
+            <h4>London</h4>
+            <button class="timezone-btn" data-timezone="Europe/London">Show</button>
+            <div class="timezone-result"></div>
+          </div>
+          <div class="timezone-card">
+            <h4>Tokyo</h4>
+            <button class="timezone-btn" data-timezone="Asia/Tokyo">Show</button>
+            <div class="timezone-result"></div>
+          </div>
+          <div class="timezone-card">
+            <h4>Sydney</h4>
+            <button class="timezone-btn" data-timezone="Australia/Sydney">Show</button>
+            <div class="timezone-result"></div>
+          </div>
+        </div>
+        
+        <h3>Convert Between Time Zones</h3>
+        <div class="inline-form">
+          <div class="form-group">
+            <label for="timezone-from">From</label>
+            <select id="timezone-from">
+              <option value="America/New_York">New York</option>
+              <option value="Europe/London">London</option>
+              <option value="Asia/Tokyo">Tokyo</option>
+              <option value="Australia/Sydney">Sydney</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="timezone-to">To</label>
+            <select id="timezone-to">
+              <option value="America/New_York">New York</option>
+              <option value="Europe/London" selected>London</option>
+              <option value="Asia/Tokyo">Tokyo</option>
+              <option value="Australia/Sydney">Sydney</option>
+            </select>
+          </div>
+          <button id="convert-timezone-btn">Convert</button>
+        </div>
+        
+        <div class="result">
+          <pre id="timezone-result"></pre>
+        </div>
+      </div>
+      
+      <!-- Date/Time Arithmetic Section -->
+      <div id="arithmetic" class="section">
+        <h2>Date/Time Arithmetic</h2>
+        <p>Perform arithmetic operations on dates and times.</p>
+        
+        <div class="form-group">
+          <label for="arithmetic-datetime">DateTime (ISO String)</label>
+          <input type="text" id="arithmetic-datetime" value="2023-01-01T12:00:00">
+        </div>
+        
+        <h3>Add to DateTime</h3>
+        <div class="inline-form">
+          <div class="form-group">
+            <label for="add-years">Years</label>
+            <input type="number" id="add-years" value="0">
+          </div>
+          <div class="form-group">
+            <label for="add-months">Months</label>
+            <input type="number" id="add-months" value="0">
+          </div>
+          <div class="form-group">
+            <label for="add-days">Days</label>
+            <input type="number" id="add-days" value="0">
+          </div>
+          <div class="form-group">
+            <label for="add-hours">Hours</label>
+            <input type="number" id="add-hours" value="0">
+          </div>
+          <button id="add-datetime-btn">Add</button>
+        </div>
+        
+        <h3>Compare DateTimes</h3>
+        <div class="inline-form">
+          <div class="form-group">
+            <label for="compare-datetime1">DateTime 1</label>
+            <input type="text" id="compare-datetime1" value="2023-01-01T12:00:00">
+          </div>
+          <div class="form-group">
+            <label for="compare-datetime2">DateTime 2</label>
+            <input type="text" id="compare-datetime2" value="2023-01-02T12:00:00">
+          </div>
+          <button id="compare-datetime-btn">Compare</button>
+        </div>
+        
+        <div class="result">
+          <pre id="arithmetic-result"></pre>
+        </div>
+      </div>
+      
+      <!-- Durations Section -->
+      <div id="duration" class="section">
+        <h2>Durations</h2>
+        <p>Work with time durations in Temporal.</p>
+        
+        <h3>Create Duration</h3>
+        <div class="inline-form">
+          <div class="form-group">
+            <label for="duration-days">Days</label>
+            <input type="number" id="duration-days" value="0">
+          </div>
+          <div class="form-group">
+            <label for="duration-hours">Hours</label>
+            <input type="number" id="duration-hours" value="0">
+          </div>
+          <div class="form-group">
+            <label for="duration-minutes">Minutes</label>
+            <input type="number" id="duration-minutes" value="0">
+          </div>
+          <div class="form-group">
+            <label for="duration-seconds">Seconds</label>
+            <input type="number" id="duration-seconds" value="0">
+          </div>
+          <button id="create-duration-btn">Create</button>
+        </div>
+        
+        <h3>Duration Between DateTimes</h3>
+        <div class="inline-form">
+          <div class="form-group">
+            <label for="duration-start">Start DateTime</label>
+            <input type="text" id="duration-start" value="2023-01-01T12:00:00">
+          </div>
+          <div class="form-group">
+            <label for="duration-end">End DateTime</label>
+            <input type="text" id="duration-end" value="2023-01-02T18:30:45">
+          </div>
+          <button id="calculate-duration-btn">Calculate</button>
+        </div>
+        
+        <div class="result">
+          <pre id="duration-result"></pre>
+        </div>
+      </div>
+      
+      <!-- Calendars Section -->
+      <div id="calendar" class="section">
+        <h2>Calendars</h2>
+        <p>Explore different calendar systems in Temporal.</p>
+        
+        <div class="form-group">
+          <label for="calendar-date">Date (ISO String)</label>
+          <input type="text" id="calendar-date" value="2023-01-01">
+        </div>
+        
+        <div class="form-group">
+          <label for="calendar-system">Calendar System</label>
+          <select id="calendar-system">
+            <option value="iso8601">ISO 8601</option>
+            <option value="hebrew">Hebrew</option>
+            <option value="islamic">Islamic</option>
+            <option value="japanese">Japanese</option>
+            <option value="buddhist">Buddhist</option>
+            <option value="persian">Persian</option>
+            <option value="indian">Indian</option>
+            <option value="coptic">Coptic</option>
+            <option value="ethiopic">Ethiopic</option>
+            <option value="chinese">Chinese</option>
+          </select>
+        </div>
+        
+        <button id="convert-calendar-btn">Convert</button>
+        
+        <div class="result">
+          <pre id="calendar-result"></pre>
+        </div>
+      </div>
+      
+      <!-- Practical Examples Section -->
+      <div id="practical" class="section">
+        <h2>Practical Examples</h2>
+        <p>Real-world examples using the Temporal API.</p>
+        
+        <h3>Calculate Age</h3>
+        <div class="form-group">
+          <label for="birth-date">Birth Date</label>
+          <input type="text" id="birth-date" value="1990-01-01">
+        </div>
+        <button id="calculate-age-btn">Calculate Age</button>
+        
+        <h3>Business Days Calculator</h3>
+        <div class="inline-form">
+          <div class="form-group">
+            <label for="business-start">Start Date</label>
+            <input type="text" id="business-start" value="2023-01-01">
+          </div>
+          <div class="form-group">
+            <label for="business-end">End Date</label>
+            <input type="text" id="business-end" value="2023-01-31">
+          </div>
+          <button id="calculate-business-days-btn">Calculate</button>
+        </div>
+        
+        <h3>Flight Time Calculator</h3>
+        <div class="form-group">
+          <label for="flight-departure">Departure (ISO String with Time Zone)</label>
+          <input type="text" id="flight-departure" value="2023-01-01T08:30:00-05:00[America/New_York]">
+        </div>
+        <div class="form-group">
+          <label for="flight-duration-hours">Flight Duration (Hours)</label>
+          <input type="number" id="flight-duration-hours" value="7">
+        </div>
+        <div class="form-group">
+          <label for="flight-duration-minutes">Flight Duration (Minutes)</label>
+          <input type="number" id="flight-duration-minutes" value="45">
+        </div>
+        <div class="form-group">
+          <label for="flight-arrival-timezone">Arrival Time Zone</label>
+          <select id="flight-arrival-timezone">
+            <option value="Europe/London">London</option>
+            <option value="Europe/Paris">Paris</option>
+            <option value="Asia/Tokyo">Tokyo</option>
+            <option value="Australia/Sydney">Sydney</option>
+          </select>
+        </div>
+        <button id="calculate-flight-btn">Calculate Arrival</button>
+        
+        <div class="result">
+          <pre id="practical-result"></pre>
+        </div>
+      </div>
+      
+      <!-- Time Tracker Section -->
+      <div id="timetracker" class="section">
+        <h2>Time Tracker</h2>
+        <p>Track time using Temporal API</p>
+        
+        <h3>Current Time</h3>
+        <div class="result">
+          <pre id="current-time-display"></pre>
+        </div>
+        
+        <h3>Time Tracker</h3>
+        <div class="form-group">
+          <label for="time-entry-timezone">Time Zone</label>
+          <select id="time-entry-timezone">
+            <option value="America/New_York">New York</option>
+            <option value="America/Chicago" selected>Chicago</option>
+            <option value="America/Denver">Denver</option>
+            <option value="America/Los_Angeles">Los Angeles</option>
+            <option value="Europe/London">London</option>
+            <option value="Europe/Paris">Paris</option>
+            <option value="Asia/Tokyo">Tokyo</option>
+          </select>
+        </div>
+        <div class="button-group">
+          <button id="start-tracking-btn">Start Tracking</button>
+          <button id="stop-tracking-btn" disabled>Stop Tracking</button>
+          <button id="reset-tracking-btn">Reset</button>
+        </div>
+        
+        <h3>Tracking Information</h3>
+        <div class="result">
+          <pre id="tracking-info"></pre>
+        </div>
+        
+        <h3>Save Time Entry with Note</h3>
+        <div class="form-group">
+          <label for="time-entry-note">Note</label>
+          <textarea id="time-entry-note" placeholder="Enter a note for this time entry"></textarea>
+        </div>
+        <button id="save-with-note-btn">Save Time Entry</button>
+        
+        <h3>Saved Time Entries</h3>
+        <div class="saved-entries-container">
+          <table id="saved-entries-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Note</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="saved-entries-body">
+              <!-- Saved entries will be added here dynamically -->
+            </tbody>
+          </table>
+        </div>
+        
+        <h3>Duration Calculation</h3>
+        <div class="inline-form">
+          <div class="form-group">
+            <label for="duration-start">Start Time</label>
+            <input type="text" id="duration-start" placeholder="YYYY-MM-DDThh:mm:ss">
+          </div>
+          <div class="form-group">
+            <label for="duration-end">End Time</label>
+            <input type="text" id="duration-end" placeholder="YYYY-MM-DDThh:mm:ss">
+          </div>
+          <button id="calculate-duration-btn">Calculate</button>
+        </div>
+        
+        <div class="result">
+          <pre id="timetracker-result"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="./js/temporal-explorer.js"></script>
+</body>
+</html>
