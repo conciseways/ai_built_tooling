@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fast Tracker</title>
+    <link rel="stylesheet" href="./styles/main.css">
+    <link rel="stylesheet" href="./styles/modal.css">
+</head>
+<body>
+    <header>
+        <h1>Fast Tracker</h1>
+        <nav>
+            <ul>
+                <li><a href="#dashboard">Dashboard</a></li>
+                <li><a href="#tasks">Tasks</a></li>
+                <li><a href="#settings">Settings</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="dashboard" class="active">
+            <h2>Dashboard</h2>
+            <div class="dashboard-content">
+                <div class="summary-card">
+                    <h3>Task Summary</h3>
+                    <div class="stats">
+                        <div class="stat">
+                            <span class="stat-value">0</span>
+                            <span class="stat-label">Total</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">0</span>
+                            <span class="stat-label">Completed</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">0</span>
+                            <span class="stat-label">Pending</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tasks">
+            <h2>Tasks</h2>
+            <div class="task-controls">
+                <button id="add-task">Add New Task</button>
+                <div class="task-filters">
+                    <label>
+                        <input type="checkbox" checked> Show Completed
+                    </label>
+                </div>
+            </div>
+            <div class="task-list" id="task-list">
+                <!-- Tasks will be added here dynamically -->
+            </div>
+        </section>
+
+        <section id="settings">
+            <h2>Settings</h2>
+            <form id="settings-form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username">
+                </div>
+                <div class="form-group">
+                    <label for="theme">Theme</label>
+                    <select id="theme" name="theme">
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                        <option value="system">System Default</option>
+                    </select>
+                </div>
+                <button type="submit">Save Settings</button>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Fast Tracker</p>
+    </footer>
+
+    <script src="./js/app.js" type="module"></script>
+</body>
+</html>

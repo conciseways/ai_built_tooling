@@ -1,0 +1,21 @@
+{
+  "name": "fast-tracker",
+  "version": "0.1.0",
+  "description": "Fast Tracker HTML Application",
+  "main": "index.js",
+  "scripts": {
+    "start": "parcel src/index.html",
+    "build": "parcel build src/index.html",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "fast-tracker",
+    "html",
+    "application"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "parcel-bundler": "^1.12.5"
+  }
+}
