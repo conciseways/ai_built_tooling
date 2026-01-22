@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mobile Time Tracker</title>
+  <!-- We'll use the polyfill from the existing project -->
+  <style>
+    :root {
+      --primary-color: #3498db;
+      --secondary-color: #2980b9;
+      --accent-color: #e74c3c;
+      --light-bg: #f5f5f5;
+      --dark-text: #333;
+      --light-text: #fff;
+      --border-color: #ddd;
+      --success-color: #2ecc71;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      line-height: 1.6;
+      color: var(--dark-text);
+      background-color: var(--light-bg);
+      padding: 1rem;
+      max-width: 100%;
+      overflow-x: hidden;
+      font-size: 16px;
+    }
+    
+    h1, h2, h3 {
+      margin-bottom: 1rem;
+      color: var(--primary-color);
+    }
+    
+    h1 {
+      font-size: 2rem;
+      text-align: center;
+      margin-top: 0.5rem;
+    }
+    
+    h2 {
+      font-size: 1.5rem;
+      border-bottom: 2px solid var(--primary-color);
+      padding-bottom: 0.5rem;
+      margin-top: 1.5rem;
+    }
+    
+    h3 {
+      font-size: 1.25rem;
+      margin-top: 1rem;
+    }
+    
+    .container {
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 1rem;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .current-time {
+      font-size: 1.25rem;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 1rem;
+      padding: 0.75rem;
+      background-color: var(--light-bg);
+      border-radius: 8px;
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+    
+    input, select, textarea {
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 1.1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      margin-top: 0.25rem;
+    }
+    
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+    
+    button {
+      background-color: var(--primary-color);
+      color: var(--light-text);
+      border: none;
+      border-radius: 4px;
+      padding: 0.75rem 1rem;
+      font-size: 1.1rem;
+      cursor: pointer;
+      width: 100%;
+      margin-bottom: 1rem;
+      min-height: 50px;
+      display: block;
+      text-align: center;
+      font-weight: bold;
+      transition: background-color 0.2s;
+    }
+    
+    button:hover {
+      background-color: var(--secondary-color);
+    }
+    
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .delete-btn {
+      background-color: var(--accent-color);
+      padding: 0.5rem;
+      font-size: 1rem;
+      min-height: 44px;
+    }
+    
+    .delete-btn:hover {
+      background-color: #c0392b;
+    }
+    
+    .result {
+      background-color: var(--light-bg);
+      padding: 1rem;
+      border-radius: 4px;
+      margin-bottom: 1.5rem;
+      white-space: pre-wrap;
+      font-size: 1.1rem;
+      overflow-x: auto;
+    }
+    
+    .tracking-info {
+      font-size: 1.1rem;
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      background-color: var(--light-bg);
+      border-radius: 4px;
+      white-space: pre-wrap;
+    }
+    
+    .saved-entries {
+      margin-top: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .entry-card {
+      background-color: #fff;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      position: relative;
+    }
+    
+    .entry-time {
+      font-weight: bold;
+      color: var(--primary-color);
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      text-decoration: underline;
+      font-size: 1.1rem;
+    }
+    
+    .entry-note {
+      margin-bottom: 0.75rem;
+      font-size: 1.1rem;
+    }
+    
+    .entry-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+    
+    @media (max-width: 480px) {
+      body {
+        padding: 0.5rem;
+      }
+      
+      .container {
+        padding: 0.75rem;
+      }
+      
+      h1 {
+        font-size: 1.75rem;
+      }
+      
+      button {
+        padding: 0.75rem 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Mobile Time Tracker</h1>
+    
+    <div class="current-time" id="current-time">
+      Loading current time...
+    </div>
+    
+    <h2>Time Tracker</h2>
+    
+    <div class="form-group">
+      <label for="time-entry-timezone">Time Zone</label>
+      <select id="time-entry-timezone">
+        <option value="America/New_York">New York</option>
+        <option value="America/Chicago" selected>Chicago</option>
+        <option value="America/Denver">Denver</option>
+        <option value="America/Los_Angeles">Los Angeles</option>
+        <option value="Europe/London">London</option>
+        <option value="Europe/Paris">Paris</option>
+        <option value="Asia/Tokyo">Tokyo</option>
+      </select>
+    </div>
+    
+    <div class="button-group">
+      <button id="start-tracking-btn">Start Tracking</button>
+      <button id="stop-tracking-btn" disabled>Stop Tracking</button>
+      <button id="reset-tracking-btn">Reset</button>
+    </div>
+    
+    <div class="tracking-info" id="tracking-info">
+      No tracking data
+    </div>
+    
+    <h2>Save Time Entry</h2>
+    
+    <div class="form-group">
+      <label for="time-entry-note">Note</label>
+      <textarea id="time-entry-note" placeholder="Enter a note for this time entry"></textarea>
+    </div>
+    
+    <button id="save-with-note-btn">Save Time Entry</button>
+    
+    <h2>Saved Time Entries</h2>
+    
+    <div class="saved-entries" id="saved-entries">
+      <!-- Saved entries will be added here dynamically -->
+    </div>
+    
+    <div class="result" id="timetracker-result"></div>
+  </div>
+
+  <script>
+    // Initialize Temporal directly
+    // We'll use a simpler approach without the full polyfill
+    // This provides basic time tracking functionality
+    
+    // Add Temporal.Instant support to legacy Date
+    Date.prototype.toTemporalInstant = toTemporalInstant;
+    
+    // DOM Elements
+    const currentTimeElement = document.getElementById('current-time');
+    const startTrackingBtn = document.getElementById('start-tracking-btn');
+    const stopTrackingBtn = document.getElementById('stop-tracking-btn');
+    const resetTrackingBtn = document.getElementById('reset-tracking-btn');
+    const timeEntryTimezoneSelect = document.getElementById('time-entry-timezone');
+    const trackingInfoElement = document.getElementById('tracking-info');
+    const timeEntryNoteInput = document.getElementById('time-entry-note');
+    const saveWithNoteBtn = document.getElementById('save-with-note-btn');
+    const savedEntriesContainer = document.getElementById('saved-entries');
+    const timetrackerResult = document.getElementById('timetracker-result');
+    
+    // Tracking state
+    let trackingStartTime = null;
+    let trackingEndTime = null;
+    let isTracking = false;
+    let currentTimeInterval = null;
+    
+    // Local storage key
+    const STORAGE_KEY = 'temporal-mobile-saved-entries';
+    
+    // Update current time display
+    function updateCurrentTimeDisplay() {
+      const now = Temporal.Now.zonedDateTimeISO();
+      const timezone = timeEntryTimezoneSelect.value;
+      const nowInSelectedTz = now.withTimeZone(timezone);
+      
+      currentTimeElement.textContent = `${nowInSelectedTz.toPlainDate().toString()} ${nowInSelectedTz.toPlainTime().toString().substring(0, 8)}`;
+    }
+    
+    // Start time tracking
+    function startTracking() {
+      const timezone = timeEntryTimezoneSelect.value;
+      trackingStartTime = Temporal.Now.zonedDateTimeISO(timezone);
+      isTracking = true;
+      
+      // Update UI
+      startTrackingBtn.disabled = true;
+      stopTrackingBtn.disabled = false;
+      updateTrackingInfo();
+    }
+    
+    // Stop time tracking
+    function stopTracking() {
+      const timezone = timeEntryTimezoneSelect.value;
+      trackingEndTime = Temporal.Now.zonedDateTimeISO(timezone);
+      isTracking = false;
+      
+      // Update UI
+      startTrackingBtn.disabled = false;
+      stopTrackingBtn.disabled = true;
+      updateTrackingInfo();
+    }
+    
+    // Reset tracking
+    function resetTracking() {
+      trackingStartTime = null;
+      trackingEndTime = null;
+      isTracking = false;
+      
+      // Update UI
+      startTrackingBtn.disabled = false;
+      stopTrackingBtn.disabled = true;
+      updateTrackingInfo();
+    }
+    
+    // Update tracking information display
+    function updateTrackingInfo() {
+      let results = [];
+      
+      if (trackingStartTime) {
+        results.push(`Start Time: ${formatDateTime(trackingStartTime)}`);
+        
+        if (isTracking) {
+          const timezone = timeEntryTimezoneSelect.value;
+          const currentTime = Temporal.Now.zonedDateTimeISO(timezone);
+          const elapsedDuration = trackingStartTime.until(currentTime);
+          
+          results.push(`Current Time: ${formatDateTime(currentTime)}`);
+          results.push(`Elapsed Time: ${formatDuration(elapsedDuration)}`);
+        } else if (trackingEndTime) {
+          results.push(`End Time: ${formatDateTime(trackingEndTime)}`);
+          const duration = trackingStartTime.until(trackingEndTime);
+          results.push(`Total Duration: ${formatDuration(duration)}`);
+        }
+      } else {
+        results.push('No tracking data');
+      }
+      
+      trackingInfoElement.textContent = results.join('\n');
+    }
+    
+    // Format date time for display
+    function formatDateTime(dateTime) {
+      return `${dateTime.toPlainDate().toString()} ${dateTime.toPlainTime().toString().substring(0, 8)}`;
+    }
+    
+    // Format duration for display
+    function formatDuration(duration) {
+      const days = duration.days > 0 ? `${duration.days}d ` : '';
+      const hours = String(duration.hours).padStart(2, '0');
+      const minutes = String(duration.minutes).padStart(2, '0');
+      const seconds = String(duration.seconds).padStart(2, '0');
+      return `${days}${hours}:${minutes}:${seconds}`;
+    }
+    
+    // Load saved entries from local storage
+    function loadSavedEntries() {
+      const savedEntriesJson = localStorage.getItem(STORAGE_KEY);
+      return savedEntriesJson ? JSON.parse(savedEntriesJson) : [];
+    }
+    
+    // Save entries to local storage
+    function saveSavedEntries(entries) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    }
+    
+    // Display saved entries
+    function displaySavedEntries() {
+      const savedEntries = loadSavedEntries();
+      savedEntriesContainer.innerHTML = '';
+      
+      if (savedEntries.length === 0) {
+        const emptyMessage = document.createElement('div');
+        emptyMessage.textContent = 'No saved entries yet';
+        emptyMessage.className = 'entry-card';
+        savedEntriesContainer.appendChild(emptyMessage);
+        return;
+      }
+      
+      savedEntries.forEach(entry => {
+        // Create time object from saved string
+        const timeObj = Temporal.ZonedDateTime.from(entry.time);
+        
+        // Create entry card
+        const entryCard = document.createElement('div');
+        entryCard.className = 'entry-card';
+        
+        // Create time element
+        const timeElement = document.createElement('div');
+        timeElement.className = 'entry-time';
+        timeElement.textContent = formatDateTime(timeObj);
+        timeElement.dataset.time = entry.time;
+        
+        // Create note element
+        const noteElement = document.createElement('div');
+        noteElement.className = 'entry-note';
+        noteElement.textContent = entry.note;
+        
+        // Create delete button
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-btn';
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.dataset.id = entry.id;
+        
+        // Create actions container
+        const actionsElement = document.createElement('div');
+        actionsElement.className = 'entry-actions';
+        actionsElement.appendChild(deleteBtn);
+        
+        // Add elements to card
+        entryCard.appendChild(timeElement);
+        entryCard.appendChild(noteElement);
+        entryCard.appendChild(actionsElement);
+        
+        // Add card to container
+        savedEntriesContainer.appendChild(entryCard);
+        
+        // Add click event to time element
+        timeElement.addEventListener('click', function() {
+          showElapsedTime(this.dataset.time);
+        });
+        
+        // Add click event to delete button
+        deleteBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          deleteEntry(this.dataset.id);
+        });
+      });
+    }
+    
+    // Save a new entry with the current time and note
+    function saveEntry() {
+      const note = timeEntryNoteInput.value.trim();
+      if (!note) {
+        alert('Please enter a note for this time entry');
+        return;
+      }
+      
+      const timezone = timeEntryTimezoneSelect.value;
+      const currentTime = Temporal.Now.zonedDateTimeISO(timezone);
+      
+      const newEntry = {
+        id: generateUniqueId(),
+        time: currentTime.toString(),
+        note: note
+      };
+      
+      // Add to saved entries
+      const savedEntries = loadSavedEntries();
+      savedEntries.push(newEntry);
+      saveSavedEntries(savedEntries);
+      
+      // Clear the note input
+      timeEntryNoteInput.value = '';
+      
+      // Refresh the display
+      displaySavedEntries();
+    }
+    
+    // Delete an entry by ID
+    function deleteEntry(id) {
+      let savedEntries = loadSavedEntries();
+      savedEntries = savedEntries.filter(entry => entry.id !== id);
+      saveSavedEntries(savedEntries);
+      displaySavedEntries();
+    }
+    
+    // Generate a unique ID for entries
+    function generateUniqueId() {
+      return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+    }
+    
+    // Show elapsed time when clicking on a time entry
+    function showElapsedTime(timeString) {
+      try {
+        // Parse the saved time
+        const savedTime = Temporal.ZonedDateTime.from(timeString);
+        
+        // Get current time in the same timezone
+        const now = Temporal.Now.zonedDateTimeISO(savedTime.timeZoneId);
+        
+        // Calculate elapsed time
+        const elapsed = savedTime.until(now);
+        
+        // Format for alert - extract hours, minutes, seconds
+        const hours = Math.floor(elapsed.total('hours'));
+        const minutes = elapsed.minutes;
+        const seconds = elapsed.seconds;
+        const alertMessage = `Elapsed time: ${hours} hours, ${minutes} minutes, ${seconds} seconds`;
+        
+        // Show alert with elapsed time
+        alert(alertMessage);
+        
+        // Format elapsed time for display
+        const elapsedHours = elapsed.total('hours').toFixed(2);
+        const elapsedDays = elapsed.total('days').toFixed(2);
+        
+        // Create message for result area
+        const message = [
+          `Time entry: ${formatDateTime(savedTime)}`,
+          `Current time: ${formatDateTime(now)}`,
+          `Elapsed time: ${formatDuration(elapsed)}`,
+          `Total hours: ${elapsedHours} hours`,
+          `Total days: ${elapsedDays} days`
+        ].join('\n');
+        
+        // Display in result area
+        timetrackerResult.textContent = message;
+        
+        // Scroll to the result area
+        timetrackerResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } catch (error) {
+        console.error('Error calculating elapsed time:', error);
+        timetrackerResult.textContent = `Error calculating elapsed time: ${error.message}`;
+        alert(`Error: ${error.message}`);
+      }
+    }
+    
+    // Event listeners
+    startTrackingBtn.addEventListener('click', startTracking);
+    stopTrackingBtn.addEventListener('click', stopTracking);
+    resetTrackingBtn.addEventListener('click', resetTracking);
+    saveWithNoteBtn.addEventListener('click', saveEntry);
+    
+    // Update timezone selection
+    timeEntryTimezoneSelect.addEventListener('change', () => {
+      updateCurrentTimeDisplay();
+      if (isTracking) {
+        updateTrackingInfo();
+      }
+    });
+    
+    // Initialize
+    updateCurrentTimeDisplay();
+    displaySavedEntries();
+    
+    // Set up interval to update current time and tracking info
+    currentTimeInterval = setInterval(() => {
+      updateCurrentTimeDisplay();
+      if (isTracking) {
+        updateTrackingInfo();
+      }
+    }, 1000);
+    
+    // Clean up interval on page unload
+    window.addEventListener('beforeunload', () => {
+      if (currentTimeInterval) {
+        clearInterval(currentTimeInterval);
+      }
+    });
+  </script>
+</body>
+</html>
