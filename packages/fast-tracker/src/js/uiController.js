@@ -1,5 +1,5 @@
 // UI Controller Class - Handles UI interactions and updates
-export class UIController {
+class UIController {
   constructor(taskManager) {
     this.taskManager = taskManager;
     this.currentSection = 'dashboard';
@@ -281,3 +281,5 @@ export class UIController {
     alert('Settings saved successfully!');
   }
 }
+
+module.exports = { UIController };

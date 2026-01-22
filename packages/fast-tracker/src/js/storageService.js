@@ -1,5 +1,5 @@
 // Storage Service Class - Handles data persistence
-export class StorageService {
+class StorageService {
   constructor() {
     this.storage = window.localStorage;
     this.prefix = 'fast-tracker-';
@@ -35,3 +35,5 @@ export class StorageService {
     return this.storage.getItem(this.prefix + key) !== null;
   }
 }
+
+module.exports = { StorageService };

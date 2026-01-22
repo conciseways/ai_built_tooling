@@ -1,7 +1,7 @@
 // Import modules
-import { TaskManager } from './taskManager.js';
-import { UIController } from './uiController.js';
-import { StorageService } from './storageService.js';
+const TaskManager = require('./taskManager').TaskManager;
+const UIController = require('./uiController').UIController;
+const StorageService = require('./storageService').StorageService;
 
 // Main App Class
 class App {

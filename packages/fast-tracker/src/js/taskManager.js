@@ -1,5 +1,5 @@
 // Task Manager Class - Handles task data and operations
-export class TaskManager {
+class TaskManager {
   constructor(storageService) {
     this.storageService = storageService;
     this.tasks = [];
@@ -92,3 +92,5 @@ export class TaskManager {
     this.listeners.forEach(callback => callback(this.tasks));
   }
 }
+
+module.exports = { TaskManager };
