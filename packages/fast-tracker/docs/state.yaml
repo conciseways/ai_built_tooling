@@ -1,12 +1,12 @@
 ---
 # Time Tracker Application State
 version: 1.0.0
-last_updated: "2026-01-22"
+last_updated: "2026-01-23"
 
 # Application Files
 files:
-  - path: "src/time-tracker-with-edit.html"
-    description: "Latest version of the Time Tracker application with full functionality"
+  - path: "src/time-tracker-enhanced-storage.html"
+    description: "Latest version with enhanced localStorage persistence"
     features:
       - "12-hour AM/PM time format"
       - "Editable start time for new entries"
@@ -14,6 +14,11 @@ files:
       - "Elapsed time calculation on click"
       - "Edit functionality for existing entries"
       - "Delete functionality for entries"
+      - "Enhanced localStorage persistence across file openings"
+      - "Storage status indicator"
+      - "Improved error handling and debugging"
+  - path: "src/time-tracker-with-edit.html"
+    description: "Previous version with edit functionality but basic localStorage"
   - path: "src/time-tracker-final.html"
     description: "Previous version without edit functionality for existing entries"
   - path: "src/time-tracker-simplified.html"

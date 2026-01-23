@@ -6,7 +6,7 @@ The Time Tracker is a standalone, mobile-friendly web application that allows us
 
 ## Latest Version
 
-The most current version of the application is `time-tracker-with-edit.html`, which includes all features including editing functionality for existing entries.
+The most current version of the application is `time-tracker-enhanced-storage.html`, which includes all features of the previous versions plus enhanced localStorage persistence to ensure data remains available when reopening the file.
 
 ## Core Features
 
@@ -14,10 +14,12 @@ The most current version of the application is `time-tracker-with-edit.html`, wh
 - **Timezone selection** with Chicago as the default
 - **Editable time input** using HTML5 datetime-local element
 - **Note input** for adding context to time entries
-- **Local storage** for persisting time entries across sessions
+- **Enhanced local storage** with consistent storage key for persisting entries across file reopenings
+- **Storage status indicator** showing how many entries are stored
 - **Elapsed time calculation** shown via alert when clicking on a time entry
 - **Edit functionality** for modifying existing time entries
 - **Delete functionality** for removing time entries
+- **Improved error handling** for storage operations
 
 ## Technical Implementation
 
@@ -117,11 +119,12 @@ The application evolved through several versions:
 2. `time-tracker-standalone.html` - Version using native JavaScript Date objects
 3. `time-tracker-simplified.html` - Simplified version without tracking controls
 4. `time-tracker-final.html` - Version with 12-hour format and editable start time
-5. `time-tracker-with-edit.html` - Current version with edit functionality
+5. `time-tracker-with-edit.html` - Version with edit functionality for existing entries
+6. `time-tracker-enhanced-storage.html` - Current version with enhanced localStorage persistence
 
 ## How to Use
 
-1. Open `time-tracker-with-edit.html` directly in a web browser
+1. Open `time-tracker-enhanced-storage.html` directly in a web browser
 2. The current time is displayed at the top
 3. Select your preferred timezone (Chicago is default)
 4. To create a new entry:
@@ -143,10 +146,19 @@ The application evolved through several versions:
 ### Extending the Application
 
 To add new features:
-1. Start with the latest version (`time-tracker-with-edit.html`)
+1. Start with the latest version (`time-tracker-enhanced-storage.html`)
 2. The application is fully self-contained, so all code is in this single file
 3. CSS styles are in the `<style>` section at the top
 4. JavaScript code is in the `<script>` section at the bottom
+
+### Storage Implementation
+
+The enhanced storage implementation includes:
+
+1. **Consistent Storage Key**: Uses `time-tracker-global-entries` as the localStorage key to ensure persistence across file openings
+2. **Load Event Handling**: Loads entries both on page load and immediately to ensure data is always retrieved
+3. **Storage Status Indicator**: Shows the number of entries stored and warns if localStorage is unavailable
+4. **Error Handling**: Comprehensive error handling for all storage operations with user-friendly alerts
 
 ### Updating This Documentation
 

@@ -212,6 +212,13 @@
       margin-top: 1rem;
     }
     
+    .storage-status {
+      text-align: center;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: #666;
+    }
+    
     @media (max-width: 480px) {
       body {
         padding: 0.5rem;
@@ -273,6 +280,10 @@
     <div class="saved-entries" id="saved-entries">
       <!-- Saved entries will be added here dynamically -->
     </div>
+    
+    <div class="storage-status" id="storage-status">
+      <!-- Storage status will be displayed here -->
+    </div>
   </div>
 
   <script>
@@ -283,6 +294,7 @@
     const timeEntryNoteInput = document.getElementById('time-entry-note');
     const saveWithNoteBtn = document.getElementById('save-with-note-btn');
     const savedEntriesContainer = document.getElementById('saved-entries');
+    const storageStatusElement = document.getElementById('storage-status');
     
     // Local storage key - using a consistent global key for persistence across file openings
     const STORAGE_KEY = 'time-tracker-global-entries';
@@ -365,6 +377,31 @@
       return `${daysStr}${hoursStr}:${minutesStr}:${secondsStr}`;
     }
     
+    // Check if localStorage is available
+    function isLocalStorageAvailable() {
+      try {
+        const test = 'test';
+        localStorage.setItem(test, test);
+        localStorage.removeItem(test);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+    
+    // Update storage status display
+    function updateStorageStatus() {
+      if (!isLocalStorageAvailable()) {
+        storageStatusElement.textContent = 'Warning: Local storage is not available. Your entries will not be saved between sessions.';
+        storageStatusElement.style.color = 'red';
+        return;
+      }
+      
+      const entries = loadSavedEntries();
+      storageStatusElement.textContent = `${entries.length} entries stored in browser local storage`;
+      storageStatusElement.style.color = '#666';
+    }
+    
     // Load saved entries from local storage
     function loadSavedEntries() {
       try {
@@ -386,6 +423,7 @@
         console.log('Saving entries to localStorage:', entries.length, 'entries');
         localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
         console.log('Save successful');
+        updateStorageStatus();
       } catch (error) {
         console.error('Error saving to localStorage:', error);
         alert('Error saving your entries. Your browser might be in private mode or storage might be full.');
@@ -408,6 +446,7 @@
         emptyMessage.textContent = 'No saved entries yet';
         emptyMessage.className = 'entry-card';
         savedEntriesContainer.appendChild(emptyMessage);
+        updateStorageStatus();
         return;
       }
       
@@ -471,6 +510,8 @@
           deleteEntry(this.dataset.id);
         });
       });
+      
+      updateStorageStatus();
     }
     
     // Edit an entry
