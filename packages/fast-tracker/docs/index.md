@@ -6,26 +6,44 @@ The Time Tracker is a standalone, mobile-friendly web application that allows us
 
 ## Latest Version
 
-The most current version of the application is `time-tracker-enhanced-storage.html`, which includes all features of the previous versions plus enhanced localStorage persistence to ensure data remains available when reopening the file.
+The most current version of the application is the Progressive Web App (PWA) version located in the `time-tracker-pwa` directory. This version includes all features of the previous versions plus IndexedDB storage for robust data persistence, offline functionality, and the ability to install as a standalone application.
 
 ## Core Features
 
 - **Current time display** in 12-hour AM/PM format that updates every second
 - **Timezone selection** with Chicago as the default
-- **Editable time input** using HTML5 datetime-local element
 - **Note input** for adding context to time entries
-- **Enhanced local storage** with consistent storage key for persisting entries across file reopenings
+- **Automatic timestamping** when saving entries
+- **IndexedDB storage** for robust data persistence across browser sessions and devices
 - **Storage status indicator** showing how many entries are stored
 - **Elapsed time calculation** shown via alert when clicking on a time entry
 - **Edit functionality** for modifying existing time entries
 - **Delete functionality** for removing time entries
 - **Improved error handling** for storage operations
+- **Offline functionality** via Service Worker caching
+- **Installable as a standalone app** with home screen icon
+- **Modular file structure** with separate HTML, CSS, and JavaScript files
 
 ## Technical Implementation
 
-### HTML Structure
+### Application Structure
 
-The application uses HTML5 and is structured as follows:
+The PWA version uses a modular structure with separate files:
+
+```
+time-tracker-pwa/
+├── index.html            # Main HTML structure
+├── css/
+│   └── styles.css       # Separated CSS styles
+├── js/
+│   ├── app.js          # Main application logic
+│   └── db.js           # IndexedDB database module
+├── service-worker.js    # Service worker for offline functionality
+├── manifest.json        # Web app manifest for installation
+└── images/             # Icons and images for the PWA
+```
+
+The main HTML file structure is as follows:
 
 ```html
 <!DOCTYPE html>
@@ -33,8 +51,12 @@ The application uses HTML5 and is structured as follows:
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#3498db">
+  <meta name="description" content="Mobile Time Tracker PWA with offline support">
   <title>Mobile Time Tracker</title>
-  <style>/* CSS styles */</style>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="images/icon-192x192.png">
 </head>
 <body>
   <div class="container">
@@ -44,34 +66,26 @@ The application uses HTML5 and is structured as follows:
       <!-- Current time displayed here -->
     </div>
     
-    <h2>Time Zone</h2>
-    <div class="form-group">
-      <!-- Timezone selector -->
-    </div>
+    <!-- Other UI elements -->
     
-    <h2>Save Time Entry</h2>
-    <div class="form-group">
-      <!-- Time input -->
-    </div>
-    <div class="form-group">
-      <!-- Note input -->
-    </div>
-    <button id="save-with-note-btn">Save Time Entry</button>
-    
-    <h2>Saved Time Entries</h2>
-    <div class="saved-entries" id="saved-entries">
-      <!-- Saved entries displayed here -->
+    <div class="install-container">
+      <button id="install-btn" class="install-btn" style="display: none;">Install App</button>
     </div>
   </div>
 
-  <script>/* JavaScript code */</script>
+  <!-- Scripts -->
+  <script src="js/db.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    // Service worker registration
+  </script>
 </body>
 </html>
 ```
 
 ### Data Structure
 
-Time entries are stored in localStorage using the following structure:
+Time entries are stored in IndexedDB using the following structure:
 
 ```javascript
 {
@@ -80,6 +94,12 @@ Time entries are stored in localStorage using the following structure:
   note: string      // User-provided note text
 }
 ```
+
+The IndexedDB database is configured as follows:
+- Database name: `TimeTrackerDB`
+- Object store name: `timeEntries`
+- Key path: `id`
+- Index: `time` (non-unique)
 
 ### Key Functions
 
@@ -95,8 +115,13 @@ Time entries are stored in localStorage using the following structure:
    - `cancelEdit(id)` - Cancels editing mode
 
 3. **Storage Functions**
-   - `loadSavedEntries()` - Loads entries from localStorage
-   - `saveSavedEntries(entries)` - Saves entries to localStorage
+   - `DB.init()` - Initializes the IndexedDB database
+   - `DB.getEntries()` - Loads all entries from IndexedDB
+   - `DB.getEntry(id)` - Gets a specific entry by ID
+   - `DB.addEntry(entry)` - Adds a new entry to IndexedDB
+   - `DB.updateEntry(entry)` - Updates an existing entry
+   - `DB.deleteEntry(id)` - Deletes an entry from IndexedDB
+   - `DB.countEntries()` - Counts entries in the database
 
 4. **Time Calculations**
    - `showElapsedTime(timeString)` - Calculates and displays elapsed time
@@ -120,17 +145,17 @@ The application evolved through several versions:
 3. `time-tracker-simplified.html` - Simplified version without tracking controls
 4. `time-tracker-final.html` - Version with 12-hour format and editable start time
 5. `time-tracker-with-edit.html` - Version with edit functionality for existing entries
-6. `time-tracker-enhanced-storage.html` - Current version with enhanced localStorage persistence
+6. `time-tracker-enhanced-storage.html` - Version with enhanced localStorage persistence
+7. `time-tracker-pwa/` - Current version as a Progressive Web App with IndexedDB storage
 
 ## How to Use
 
-1. Open `time-tracker-enhanced-storage.html` directly in a web browser
+1. Open `time-tracker-pwa/index.html` in a web browser or deploy to a web server
 2. The current time is displayed at the top
 3. Select your preferred timezone (Chicago is default)
 4. To create a new entry:
-   - Set the time using the datetime picker (defaults to current time)
    - Enter a note in the textarea
-   - Click "Save Time Entry"
+   - Click "Save Time Entry" (current time is automatically used)
 5. To view elapsed time:
    - Click on the time text of any saved entry
    - An alert will show hours, minutes, and seconds elapsed
@@ -146,19 +171,34 @@ The application evolved through several versions:
 ### Extending the Application
 
 To add new features:
-1. Start with the latest version (`time-tracker-enhanced-storage.html`)
-2. The application is fully self-contained, so all code is in this single file
-3. CSS styles are in the `<style>` section at the top
-4. JavaScript code is in the `<script>` section at the bottom
+1. Start with the latest version in the `time-tracker-pwa` directory
+2. The application uses a modular structure:
+   - `index.html` contains the main HTML structure
+   - `css/styles.css` contains all styling
+   - `js/app.js` contains the main application logic
+   - `js/db.js` contains the IndexedDB database module
+   - `service-worker.js` handles offline functionality
+   - `manifest.json` defines the PWA installation properties
 
 ### Storage Implementation
 
-The enhanced storage implementation includes:
+The IndexedDB storage implementation includes:
 
-1. **Consistent Storage Key**: Uses `time-tracker-global-entries` as the localStorage key to ensure persistence across file openings
-2. **Load Event Handling**: Loads entries both on page load and immediately to ensure data is always retrieved
-3. **Storage Status Indicator**: Shows the number of entries stored and warns if localStorage is unavailable
-4. **Error Handling**: Comprehensive error handling for all storage operations with user-friendly alerts
+1. **Database Module**: A dedicated `db.js` module that handles all database operations
+2. **Asynchronous Operations**: All database operations use Promises for clean async handling
+3. **Error Handling**: Comprehensive error handling for all database operations
+4. **Storage Status Indicator**: Shows the number of entries stored in IndexedDB
+5. **Offline Support**: Works seamlessly with the Service Worker for offline functionality
+
+### PWA Features
+
+The Progressive Web App implementation includes:
+
+1. **Service Worker**: Caches application assets for offline use
+2. **Web App Manifest**: Defines how the app appears when installed
+3. **Installation Support**: Users can install the app to their home screen
+4. **Offline Indicator**: Visual feedback when the user is offline
+5. **Responsive Design**: Works well on all device sizes
 
 ### Updating This Documentation
 
@@ -194,7 +234,10 @@ Potential enhancements for future development:
 
 - **HTML Version**: HTML5
 - **Dependencies**: None (fully standalone)
-- **Storage**: Browser localStorage
+- **Storage**: IndexedDB
 - **Responsive**: Yes
 - **Mobile-friendly**: Yes
 - **Browser Support**: All modern browsers
+- **PWA Features**: Yes (installable, offline-capable)
+- **Service Worker**: Yes
+- **Web App Manifest**: Yes

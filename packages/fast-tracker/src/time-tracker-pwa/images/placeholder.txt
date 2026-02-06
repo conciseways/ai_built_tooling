@@ -1,0 +1,10 @@
+To generate the PWA icons:
+
+1. Open the icon-generator.html file in a web browser
+2. Click the "Download 192x192 Icon" link to download the 192x192 icon
+3. Click the "Download 512x512 Icon" link to download the 512x512 icon
+4. Save both downloaded files in this directory
+
+These icons feature a simple clock design with "TT" text that represents the Time Tracker application.
+
+For production use, you may want to replace these with professionally designed icons.

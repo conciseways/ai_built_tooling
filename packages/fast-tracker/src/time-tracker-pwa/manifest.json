@@ -1,0 +1,32 @@
+{
+  "name": "Mobile Time Tracker",
+  "short_name": "Time Tracker",
+  "description": "Track time entries with notes and calculate elapsed time",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3498db",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "images/icon-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "images/icon-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "screenshots": [
+    {
+      "src": "images/screenshot1.png",
+      "sizes": "320x640",
+      "type": "image/png"
+    }
+  ]
+}

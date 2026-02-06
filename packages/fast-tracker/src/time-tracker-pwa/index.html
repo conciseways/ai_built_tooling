@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#3498db">
+  <meta name="description" content="Mobile Time Tracker PWA with offline support">
+  <title>Mobile Time Tracker</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="images/icon-192x192.png">
+</head>
+<body>
+  <div class="container">
+    <h1>Mobile Time Tracker</h1>
+    
+    <div class="current-time" id="current-time">
+      Loading current time...
+    </div>
+    
+    <h2>Time Zone</h2>
+    
+    <div class="form-group">
+      <label for="time-entry-timezone">Select Time Zone</label>
+      <select id="time-entry-timezone">
+        <option value="America/New_York">New York</option>
+        <option value="America/Chicago" selected>Chicago</option>
+        <option value="America/Denver">Denver</option>
+        <option value="America/Los_Angeles">Los Angeles</option>
+        <option value="Europe/London">London</option>
+        <option value="Europe/Paris">Paris</option>
+        <option value="Asia/Tokyo">Tokyo</option>
+      </select>
+    </div>
+    
+    <h2>Save Time Entry</h2>
+    
+    <div class="form-group">
+      <label for="time-entry-note">Note</label>
+      <textarea id="time-entry-note" placeholder="Enter a note for this time entry"></textarea>
+    </div>
+    
+    <button id="save-with-note-btn">Save Time Entry</button>
+    
+    <h2>Saved Time Entries</h2>
+    
+    <div class="saved-entries" id="saved-entries">
+      <!-- Saved entries will be added here dynamically -->
+    </div>
+    
+    <div class="storage-status" id="storage-status">
+      <!-- Storage status will be displayed here -->
+    </div>
+
+    <div class="install-container">
+      <button id="install-btn" class="install-btn" style="display: none;">Install App</button>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/db.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js')
+          .then(registration => {
+            console.log('Service Worker registered with scope:', registration.scope);
+          })
+          .catch(error => {
+            console.error('Service Worker registration failed:', error);
+          });
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>PWA Icon Generator</title>
+</head>
+<body>
+  <h1>PWA Icon Generator</h1>
+  <canvas id="canvas192" width="192" height="192"></canvas>
+  <br>
+  <a id="download192" download="icon-192x192.png">Download 192x192 Icon</a>
+  <br><br>
+  <canvas id="canvas512" width="512" height="512"></canvas>
+  <br>
+  <a id="download512" download="icon-512x512.png">Download 512x512 Icon</a>
+
+  <script>
+    // Generate 192x192 icon
+    const canvas192 = document.getElementById('canvas192');
+    const ctx192 = canvas192.getContext('2d');
+    
+    // Background
+    ctx192.fillStyle = '#3498db';
+    ctx192.fillRect(0, 0, 192, 192);
+    
+    // Clock face
+    ctx192.beginPath();
+    ctx192.arc(96, 96, 70, 0, 2 * Math.PI);
+    ctx192.fillStyle = 'white';
+    ctx192.fill();
+    
+    // Clock border
+    ctx192.lineWidth = 6;
+    ctx192.strokeStyle = '#2980b9';
+    ctx192.stroke();
+    
+    // Clock center
+    ctx192.beginPath();
+    ctx192.arc(96, 96, 5, 0, 2 * Math.PI);
+    ctx192.fillStyle = '#e74c3c';
+    ctx192.fill();
+    
+    // Hour hand
+    ctx192.beginPath();
+    ctx192.moveTo(96, 96);
+    ctx192.lineTo(96, 60);
+    ctx192.lineWidth = 8;
+    ctx192.strokeStyle = '#2c3e50';
+    ctx192.stroke();
+    
+    // Minute hand
+    ctx192.beginPath();
+    ctx192.moveTo(96, 96);
+    ctx192.lineTo(130, 96);
+    ctx192.lineWidth = 6;
+    ctx192.strokeStyle = '#2c3e50';
+    ctx192.stroke();
+    
+    // Text
+    ctx192.font = 'bold 24px Arial';
+    ctx192.fillStyle = '#2c3e50';
+    ctx192.textAlign = 'center';
+    ctx192.fillText('TT', 96, 140);
+    
+    // Generate download link
+    const download192 = document.getElementById('download192');
+    download192.href = canvas192.toDataURL('image/png');
+    
+    // Generate 512x512 icon (same design, larger size)
+    const canvas512 = document.getElementById('canvas512');
+    const ctx512 = canvas512.getContext('2d');
+    
+    // Background
+    ctx512.fillStyle = '#3498db';
+    ctx512.fillRect(0, 0, 512, 512);
+    
+    // Clock face
+    ctx512.beginPath();
+    ctx512.arc(256, 256, 190, 0, 2 * Math.PI);
+    ctx512.fillStyle = 'white';
+    ctx512.fill();
+    
+    // Clock border
+    ctx512.lineWidth = 16;
+    ctx512.strokeStyle = '#2980b9';
+    ctx512.stroke();
+    
+    // Clock center
+    ctx512.beginPath();
+    ctx512.arc(256, 256, 14, 0, 2 * Math.PI);
+    ctx512.fillStyle = '#e74c3c';
+    ctx512.fill();
+    
+    // Hour hand
+    ctx512.beginPath();
+    ctx512.moveTo(256, 256);
+    ctx512.lineTo(256, 150);
+    ctx512.lineWidth = 20;
+    ctx512.strokeStyle = '#2c3e50';
+    ctx512.stroke();
+    
+    // Minute hand
+    ctx512.beginPath();
+    ctx512.moveTo(256, 256);
+    ctx512.lineTo(350, 256);
+    ctx512.lineWidth = 16;
+    ctx512.strokeStyle = '#2c3e50';
+    ctx512.stroke();
+    
+    // Text
+    ctx512.font = 'bold 64px Arial';
+    ctx512.fillStyle = '#2c3e50';
+    ctx512.textAlign = 'center';
+    ctx512.fillText('TT', 256, 370);
+    
+    // Generate download link
+    const download512 = document.getElementById('download512');
+    download512.href = canvas512.toDataURL('image/png');
+  </script>
+</body>
+</html>
