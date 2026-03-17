@@ -32,8 +32,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: packages/fast-tracker/package.json
+          # Disabled npm caching because actions/setup-node runs `npm config get cache`,
+          # which fails in this repo due to workspace config.
 
       - name: Ensure modern npm
         run: npm install -g npm@10
