@@ -32,12 +32,19 @@ jobs:
           cache: 'npm'
           cache-dependency-path: packages/fast-tracker/package.json
 
+      - name: Ensure modern npm
+        run: npm install -g npm@10
+
       - name: Install dependencies
         working-directory: packages/fast-tracker
+        env:
+          NPM_CONFIG_WORKSPACES: 'false'
         run: npm install
 
       - name: Build
         working-directory: packages/fast-tracker
+        env:
+          NPM_CONFIG_WORKSPACES: 'false'
         run: npm run build
 
       - name: Configure Pages
