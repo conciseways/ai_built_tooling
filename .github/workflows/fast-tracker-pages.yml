@@ -21,6 +21,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      NPM_CONFIG_WORKSPACES: 'false'
+      NPM_CONFIG_USERCONFIG: /dev/null
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,17 +43,14 @@ jobs:
           node --version
           npm --version
           npm config get workspaces || true
+          npm config list -l | grep -E "workspaces|userconfig" || true
 
       - name: Install dependencies
         working-directory: packages/fast-tracker
-        env:
-          NPM_CONFIG_WORKSPACES: 'false'
-        run: npm install
+        run: npm install --no-workspaces
 
       - name: Build
         working-directory: packages/fast-tracker
-        env:
-          NPM_CONFIG_WORKSPACES: 'false'
         run: npm run build
 
       - name: Verify dist output
