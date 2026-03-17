@@ -35,6 +35,12 @@ jobs:
       - name: Ensure modern npm
         run: npm install -g npm@10
 
+      - name: Versions
+        run: |
+          node --version
+          npm --version
+          npm config get workspaces || true
+
       - name: Install dependencies
         working-directory: packages/fast-tracker
         env:
@@ -46,6 +52,11 @@ jobs:
         env:
           NPM_CONFIG_WORKSPACES: 'false'
         run: npm run build
+
+      - name: Verify dist output
+        run: |
+          ls -la packages/fast-tracker
+          ls -la packages/fast-tracker/dist
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
