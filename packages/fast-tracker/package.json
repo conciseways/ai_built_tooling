@@ -7,6 +7,8 @@
     "start": "parcel src/time-tracker-pwa/index.html",
     "build": "node build.js",
     "build:parcel": "parcel build src/time-tracker-pwa/index.html --public-url ./",
+    "validate:pwa": "echo Run 'npm run start' in one terminal, then run: npx lighthouse http://localhost:1234 --only-categories=pwa,performance,accessibility,best-practices --view",
+    "package:zip": "npm run build && npx bestzip time-tracker-pwa-dist.zip dist/*",
     "cap:init": "npx cap init time-tracker com.conciseways.timetracker --web-dir=dist",
     "cap:add:android": "npx cap add android",
     "cap:add:ios": "npx cap add ios",
@@ -26,6 +28,8 @@
   "license": "MIT",
   "devDependencies": {
     "@capacitor/cli": "8.1.0",
+    "bestzip": "^2.2.1",
+    "lighthouse": "^12.0.0",
     "parcel-bundler": "^1.12.5"
   },
   "dependencies": {
