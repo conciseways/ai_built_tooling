@@ -1,11 +1,20 @@
 {
-  "name": "fast-tracker",
-  "version": "0.1.0",
-  "description": "Fast Tracker HTML Application",
+  "name": "time-tracker",
+  "version": "1.0.0",
+  "description": "Time Tracker PWA Application",
   "main": "index.js",
   "scripts": {
-    "start": "parcel src/index.html",
-    "build": "parcel build src/index.html",
+    "start": "parcel src/time-tracker-pwa/index.html",
+    "build": "node build.js",
+    "build:parcel": "parcel build src/time-tracker-pwa/index.html --public-url ./",
+    "cap:init": "npx cap init time-tracker com.conciseways.timetracker --web-dir=dist",
+    "cap:add:android": "npx cap add android",
+    "cap:add:ios": "npx cap add ios",
+    "cap:copy": "npx cap copy",
+    "cap:sync": "npx cap sync",
+    "cap:open:android": "npx cap open android",
+    "cap:open:ios": "npx cap open ios",
+    "build:mobile": "npm run build && npm run cap:copy && npm run cap:sync",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -16,9 +25,13 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@capacitor/cli": "8.1.0",
     "parcel-bundler": "^1.12.5"
   },
   "dependencies": {
+    "@capacitor/android": "^5.0.0",
+    "@capacitor/core": "^5.0.0",
+    "@capacitor/ios": "^5.0.0",
     "@js-temporal/polyfill": "0.5.1"
   }
 }
