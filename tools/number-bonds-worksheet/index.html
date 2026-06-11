@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Number Bonds Worksheet</title>
+  <style>
+    :root {
+      --page-padding: 0.35in;
+      --gap: 0.18in;
+      --circle: 0.72in;
+      --stroke: 2px;
+      --font: 16px;
+      --line: 2px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: #fff;
+      color: #000;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .page {
+      width: 8.5in;
+      min-height: 11in;
+      margin: 0 auto;
+      padding: var(--page-padding);
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 0.25in;
+      gap: 0.25in;
+    }
+    .title {
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .name-line {
+      display: flex;
+      align-items: baseline;
+      gap: 0.15in;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+    .line {
+      display: inline-block;
+      width: 3.0in;
+      border-bottom: 1px solid #000;
+      transform: translateY(-2px);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--gap);
+      align-items: start;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 8px;
+      margin: 0 0 0.18in;
+      align-items: end;
+      font-size: 12px;
+    }
+
+    .controls label {
+      display: grid;
+      gap: 4px;
+    }
+
+    .controls input,
+    .controls select,
+    .controls button {
+      font: inherit;
+      padding: 6px 8px;
+      border: 1px solid #000;
+      background: #fff;
+      color: #000;
+    }
+
+    .controls .wide {
+      grid-column: span 2;
+    }
+
+    .bond {
+      position: relative;
+      height: 1.35in;
+      border: 0;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .circle {
+      position: absolute;
+      width: var(--circle);
+      height: var(--circle);
+      border: var(--stroke) solid #000;
+      border-radius: 50%;
+      background: #fff;
+      display: grid;
+      place-items: center;
+      font-size: var(--font);
+      font-weight: 700;
+      line-height: 1;
+      text-align: center;
+      user-select: none;
+    }
+
+    .circle.blank {
+      font-weight: 400;
+    }
+
+    .whole {
+      left: 50%;
+      top: 0.02in;
+      transform: translateX(-50%);
+    }
+
+    .part1 {
+      left: 20%;
+      bottom: 0.02in;
+      transform: translateX(-50%);
+    }
+
+    .part2 {
+      left: 80%;
+      bottom: 0.02in;
+      transform: translateX(-50%);
+    }
+
+    .bond svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .bond line {
+      stroke: #000;
+      stroke-width: var(--line);
+      stroke-linecap: round;
+    }
+
+    @page {
+      size: letter;
+      margin: 0.5in;
+    }
+
+    @media print {
+      body { background: #fff; }
+      .page {
+        width: auto;
+        min-height: auto;
+        margin: 0;
+        padding: 0;
+      }
+      .header { margin-bottom: 0.25in; }
+      .controls { display: none; }
+      .bond {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+    }
+
+    @media screen {
+      body {
+        padding: 12px;
+      }
+      .page {
+        box-shadow: 0 0 0 1px #ddd, 0 12px 30px rgba(0,0,0,0.08);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <div class="title">Number Bonds</div>
+      <div class="name-line">Name: <span class="line"></span></div>
+    </div>
+
+    <form class="controls" id="controls" onsubmit="return false;">
+      <label>
+        Whole min
+        <input id="wholeMinInput" type="number" min="0" value="10" />
+      </label>
+      <label>
+        Whole max
+        <input id="wholeMaxInput" type="number" min="0" value="10" />
+      </label>
+      <label>
+        Items
+        <input id="countInput" type="number" min="1" value="32" />
+      </label>
+      <label>
+        Omit
+        <select id="omitInput">
+          <option value="part1">part1</option>
+          <option value="part2" selected>part2</option>
+          <option value="whole">whole</option>
+          <option value="random">random</option>
+        </select>
+      </label>
+      <label>
+        Seed (optional)
+        <input id="seedInput" type="number" placeholder="e.g. 123" />
+      </label>
+      <label>
+        Ramp difficulty
+        <select id="rampInput">
+          <option value="true" selected>true</option>
+          <option value="false">false</option>
+        </select>
+      </label>
+      <button id="regenBtn" type="button">Regenerate</button>
+    </form>
+
+    <div id="bondsGrid" class="grid" aria-label="Number bonds worksheet grid"></div>
+  </div>
+
+  <script>
+const OMIT = {
+  WHOLE: 'whole',
+  PART1: 'part1',
+  PART2: 'part2',
+  RANDOM: 'random'
+};
+
+function mulberry32(seed) {
+  let t = seed >>> 0;
+  return function () {
+    t += 0x6D2B79F5;
+    let x = t;
+    x = Math.imul(x ^ (x >>> 15), x | 1);
+    x ^= x + Math.imul(x ^ (x >>> 7), x | 61);
+    return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function shuffle(array, rand = Math.random) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+function generateAllBonds(whole) {
+  const list = [];
+  for (let a = 0; a <= whole; a++) {
+    list.push({ whole, part1: a, part2: whole - a });
+  }
+  return list;
+}
+
+function difficultyScore(bond) {
+  return bond.whole * 100 + Math.min(bond.part1, bond.part2);
+}
+
+function applyOmission(bond, omit, rand = Math.random) {
+  const choice = omit === OMIT.RANDOM
+    ? ([OMIT.WHOLE, OMIT.PART1, OMIT.PART2])[Math.floor(rand() * 3)]
+    : omit;
+
+  if (choice === OMIT.WHOLE) return { whole: null, part1: bond.part1, part2: bond.part2 };
+  if (choice === OMIT.PART1) return { whole: bond.whole, part1: null, part2: bond.part2 };
+  if (choice === OMIT.PART2) return { whole: bond.whole, part1: bond.part1, part2: null };
+  return { ...bond };
+}
+
+// options:
+// {
+//   whole: number,
+//   count: number,
+//   omit: 'whole' | 'part1' | 'part2' | 'random',
+//   rampDifficulty: boolean,
+//   seed?: number
+// }
+function generateQuizBonds(options) {
+  const wholeMinRaw = options?.wholeMin ?? options?.whole;
+  const wholeMaxRaw = options?.wholeMax ?? options?.whole;
+  const wholeMin = Number(wholeMinRaw ?? 10);
+  const wholeMax = Number(wholeMaxRaw ?? 10);
+  const count = Math.max(1, Number(options?.count ?? 32));
+  const omit = options?.omit ?? OMIT.PART2;
+  const ramp = options?.rampDifficulty ?? true;
+  const seed = options?.seed;
+
+  const rand = (seed === undefined || seed === null) ? Math.random : mulberry32(Number(seed));
+  const pool = [];
+  const start = Math.min(wholeMin, wholeMax);
+  const end = Math.max(wholeMin, wholeMax);
+  for (let w = start; w <= end; w++) {
+    pool.push(...generateAllBonds(w));
+  }
+
+  if (!ramp) {
+    shuffle(pool, rand);
+    return pool.slice(0, Math.min(count, pool.length)).map(b => applyOmission(b, omit, rand));
+  }
+
+  const byScore = new Map();
+  for (const b of pool) {
+    const s = difficultyScore(b);
+    if (!byScore.has(s)) byScore.set(s, []);
+    byScore.get(s).push(b);
+  }
+
+  const scores = Array.from(byScore.keys()).sort((a, b) => a - b);
+  const chosen = [];
+  const cap = Math.min(count, pool.length);
+
+  while (chosen.length < cap) {
+    for (const s of scores) {
+      const bucket = byScore.get(s);
+      if (!bucket.length) continue;
+      const idx = Math.floor(rand() * bucket.length);
+      chosen.push(bucket.splice(idx, 1)[0]);
+      if (chosen.length >= cap) break;
+    }
+  }
+
+  return chosen.map(b => applyOmission(b, omit, rand));
+}
+
+// Demo (all bonds of 10). For a quiz worksheet, swap this for generateQuizBonds({...}).
+let bonds = generateQuizBonds({ wholeMin: 10, wholeMax: 10, count: 32, omit: OMIT.PART2, rampDifficulty: true });
+    const grid = document.getElementById('bondsGrid');
+
+    function render() {
+      grid.innerHTML = bonds.map(bondTemplate).join('');
+    }
+
+    function displayValue(v) {
+      if (v === null || v === undefined) return '';
+      return String(v);
+    }
+
+    function isBlank(v) {
+      return v === null || v === undefined;
+    }
+
+    function bondTemplate(bond, index) {
+      const id = `bond-${index}`;
+      const whole = displayValue(bond.whole);
+      const part1 = displayValue(bond.part1);
+      const part2 = displayValue(bond.part2);
+
+      return `
+        <div class="bond" id="${id}">
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <line x1="50" y1="28" x2="25" y2="72"></line>
+            <line x1="50" y1="28" x2="75" y2="72"></line>
+          </svg>
+
+          <div class="circle whole ${isBlank(bond.whole) ? 'blank' : ''}" aria-label="Whole">${whole}</div>
+          <div class="circle part1 ${isBlank(bond.part1) ? 'blank' : ''}" aria-label="Part 1">${part1}</div>
+          <div class="circle part2 ${isBlank(bond.part2) ? 'blank' : ''}" aria-label="Part 2">${part2}</div>
+        </div>
+      `;
+    }
+
+    const wholeMinInput = document.getElementById('wholeMinInput');
+    const wholeMaxInput = document.getElementById('wholeMaxInput');
+    const countInput = document.getElementById('countInput');
+    const omitInput = document.getElementById('omitInput');
+    const seedInput = document.getElementById('seedInput');
+    const rampInput = document.getElementById('rampInput');
+    const regenBtn = document.getElementById('regenBtn');
+
+    function regenerateFromControls() {
+      const wholeMin = Number(wholeMinInput.value);
+      const wholeMax = Number(wholeMaxInput.value);
+      const count = Number(countInput.value);
+      const omit = omitInput.value;
+      const rampDifficulty = rampInput.value === 'true';
+      const seedRaw = seedInput.value;
+
+      const seed = seedRaw === '' ? undefined : Number(seedRaw);
+
+      bonds = generateQuizBonds({ wholeMin, wholeMax, count, omit, rampDifficulty, seed });
+      render();
+    }
+
+    regenBtn.addEventListener('click', regenerateFromControls);
+
+    render();
+  </script>
+</body>
+</html>
