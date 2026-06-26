@@ -1,0 +1,185 @@
+/* cards.css
+   Visual styling for playing cards. Pure presentation; layout coordinates
+   for pips/faces are supplied by render.js. */
+
+:root {
+  --card-w: 140px;            /* base card width; height derives from ratio */
+  --card-ratio: 1.4;          /* poker card ~ 2.5 x 3.5 in => 1.4 */
+  --card-radius: 10px;
+  --card-border: #d0d0d0;
+  --card-bg: #fff;
+  --ink-black: #1a1a1a;
+  --ink-red: #c8102e;
+  --card-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  --pip-size: 0.20;           /* pip size as fraction of card width */
+  --corner-size: 0.135;       /* corner index size as fraction of card width */
+  --font: "Times New Roman", Georgia, serif;
+}
+
+.card {
+  position: relative;
+  width: var(--card-w);
+  height: calc(var(--card-w) * var(--card-ratio));
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+  font-family: var(--font);
+  user-select: none;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.card.is-red { color: var(--ink-red); }
+.card.is-black { color: var(--ink-black); }
+
+/* ---------- Corner indices ---------- */
+
+.card__corner {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 0.9;
+  font-weight: 700;
+}
+
+.card__corner--tl {
+  top: calc(var(--card-w) * 0.045);
+  left: calc(var(--card-w) * 0.06);
+}
+
+.card__corner--br {
+  bottom: calc(var(--card-w) * 0.045);
+  right: calc(var(--card-w) * 0.06);
+  transform: rotate(180deg);
+}
+
+.card__corner .rank {
+  font-size: calc(var(--card-w) * var(--corner-size));
+}
+
+.card__corner .suit {
+  font-size: calc(var(--card-w) * var(--corner-size) * 0.85);
+  line-height: 1;
+}
+
+/* ---------- Center area (pips or face art) ---------- */
+
+.card__center {
+  position: absolute;
+  top: calc(var(--card-w) * 0.20);
+  bottom: calc(var(--card-w) * 0.20);
+  left: calc(var(--card-w) * 0.18);
+  right: calc(var(--card-w) * 0.18);
+}
+
+/* Pip layer fills the center; pips positioned by % via inline styles */
+.card__pips {
+  position: absolute;
+  inset: 0;
+}
+
+.pip {
+  position: absolute;
+  width: calc(var(--card-w) * var(--pip-size));
+  height: calc(var(--card-w) * var(--pip-size));
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  line-height: 1;
+}
+
+.pip svg,
+.card__corner svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  fill: currentColor;
+}
+
+.card__corner .suit svg {
+  width: calc(var(--card-w) * var(--corner-size) * 0.85);
+  height: calc(var(--card-w) * var(--corner-size) * 0.85);
+}
+
+/* Bottom-half pips are rotated 180deg like real cards */
+.pip.is-flipped {
+  transform: translate(-50%, -50%) rotate(180deg);
+}
+
+/* ---------- Large center pip for Ace ---------- */
+
+.card.is-ace .card__center {
+  display: grid;
+  place-items: center;
+}
+
+.card.is-ace .pip--ace {
+  position: static;
+  transform: none;
+  width: calc(var(--card-w) * 0.42);
+  height: calc(var(--card-w) * 0.42);
+}
+
+/* ---------- Face cards ---------- */
+
+.card__face {
+  position: absolute;
+  inset: calc(var(--card-w) * 0.14);
+  border: 2px solid currentColor;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.card__face svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ---------- Jokers ---------- */
+
+.card.is-joker .card__center {
+  display: grid;
+  place-items: center;
+}
+
+.card.is-joker .joker-label {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  font-size: calc(var(--card-w) * 0.12);
+}
+
+.card.is-joker.is-red { color: var(--ink-red); }
+.card.is-joker.is-black { color: var(--ink-black); }
+
+/* ---------- Card back ---------- */
+
+.card.is-back {
+  background:
+    repeating-linear-gradient(45deg, #b22234, #b22234 6px, #8c1a28 6px, #8c1a28 12px);
+  border: 6px solid #fff;
+  box-shadow: var(--card-shadow), inset 0 0 0 2px #8c1a28;
+}
+
+/* ---------- Layout helpers ---------- */
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--card-w), 1fr));
+  gap: calc(var(--card-w) * 0.12);
+  justify-items: center;
+  align-items: start;
+}
+
+.card-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--card-w) * 0.12);
+  align-items: start;
+}

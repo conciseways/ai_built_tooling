@@ -1,0 +1,885 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Bar Models (Black & White)</title>
+  <style>
+    :root{
+      --ink:#000;
+      --line:3px;
+      --radius:14px;
+      --gap:10px;
+      --pad:14px;
+      --font: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family:var(--font);
+      color:var(--ink);
+      background:#fff;
+      padding:18px;
+    }
+
+    .page{
+      max-width: 980px;
+      margin: 0 auto;
+      display: grid;
+      gap: 18px;
+    }
+
+    .worksheet-grid{
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      align-items: start;
+    }
+
+    .ws-item{
+      border: 2px solid #000;
+      border-radius: 16px;
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .ws-item .q-num{
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .ws-item .bar{
+      min-height: 44px;
+    }
+
+    .ws-item .seg{
+      font-size: 16px;
+      min-width: 40px;
+      padding: 6px 8px;
+    }
+
+    .ws-item .bond{
+      width: min(220px, 100%);
+      height: 100px;
+    }
+
+    .ws-item .bond .circle{
+      width: 46px;
+      height: 46px;
+      font-size: 16px;
+    }
+
+    .ws-title{
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 0 0 10px;
+      font-weight: 900;
+      font-size: 16px;
+    }
+
+    .ws-title .name{
+      display: inline-flex;
+      align-items: baseline;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .ws-title .line{
+      display: inline-block;
+      width: 2.2in;
+      border-bottom: 2px solid #000;
+      transform: translateY(-2px);
+    }
+
+    .ws-controls{
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+      align-items: end;
+      margin-top: 6px;
+      margin-bottom: 14px;
+    }
+
+    .ws-controls label{
+      display: grid;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .ws-controls input,
+    .ws-controls select,
+    .ws-controls button{
+      font: inherit;
+      padding: 6px 8px;
+      border: 2px solid #000;
+      background: #fff;
+      color: #000;
+    }
+
+    .ws-controls .wide{
+      grid-column: span 2;
+    }
+
+    .top-controls{
+      border: var(--line) solid var(--ink);
+      border-radius: 18px;
+      padding: 12px 14px;
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .top-controls .label{
+      font-size: 13px;
+      font-weight: 800;
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .card{
+      border: var(--line) solid var(--ink);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .card h2{
+      margin: 0 0 10px;
+      font-size: 18px;
+      letter-spacing: 0.2px;
+    }
+
+    .prompt{
+      margin: 0 0 12px;
+      font-size: 14px;
+      line-height: 1.25;
+    }
+
+    .model{
+      display: grid;
+      gap: 10px;
+    }
+
+    .bar-row{
+      display: grid;
+      gap: 6px;
+    }
+
+    .bar-label{
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .bar{
+      display: flex;
+      width: 100%;
+      border: var(--line) solid var(--ink);
+      border-radius: var(--radius);
+      overflow: hidden;
+      min-height: 54px;
+    }
+
+    .seg{
+      position: relative;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 18px;
+      padding: 8px 10px;
+      min-width: 54px; /* prevents tiny segments from collapsing */
+      border-right: var(--line) solid var(--ink);
+      background: #fff;
+    }
+    .seg:last-child{ border-right: none; }
+
+    .seg .seg-text{
+      position: relative;
+      z-index: 1;
+    }
+
+    .seg .units{
+      position: absolute;
+      inset: 0;
+      display: none;
+      pointer-events: none;
+    }
+
+    body.show-units .seg[data-units] .units{
+      display: flex;
+    }
+
+    .seg .unit{
+      flex: 1;
+      border-left: 1px solid #c6c6c6;
+    }
+
+    .seg .unit:first-child{
+      border-left: none;
+    }
+
+    /* Unknown segment: dashed outline feel via hatch pattern */
+    .seg.unknown{
+      background:
+        repeating-linear-gradient(
+          45deg,
+          #fff,
+          #fff 7px,
+          #000 7px,
+          #000 8px
+        );
+      color:#000;
+      text-shadow: 0 1px 0 #fff;
+    }
+
+    .total-tag{
+      display: inline-block;
+      border: var(--line) solid var(--ink);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-weight: 800;
+      font-size: 14px;
+      align-self: start;
+      justify-self: start;
+    }
+
+    .brace{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .brace .line{
+      height: 0;
+      border-top: var(--line) solid var(--ink);
+      flex: 1;
+      position: relative;
+    }
+    .brace .line:before,
+    .brace .line:after{
+      content:"";
+      position:absolute;
+      top: -8px;
+      width: 0;
+      height: 16px;
+      border-left: var(--line) solid var(--ink);
+    }
+    .brace .line:before{ left: 0; }
+    .brace .line:after{ right: 0; }
+    .brace .text{
+      font-weight: 800;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .explain{
+      margin: 10px 0 0;
+      font-size: 13px;
+      line-height: 1.25;
+    }
+
+    .controls{
+      display:flex;
+      flex-wrap:wrap;
+      gap: 10px;
+      align-items:center;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 2px solid #000;
+    }
+    label{
+      font-size: 13px;
+      font-weight: 700;
+      display:flex;
+      gap: 8px;
+      align-items:center;
+    }
+    input[type="range"]{ width: 220px; }
+    .pill{
+      border: var(--line) solid var(--ink);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-weight: 800;
+      min-width: 46px;
+      text-align:center;
+    }
+
+    .bond-block{
+      margin-top: 8px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .bond-title{
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .bond{
+      position: relative;
+      width: min(260px, 100%);
+      height: 120px;
+    }
+
+    .bond svg{
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .bond line{
+      stroke: #000;
+      stroke-width: 3;
+      stroke-linecap: round;
+    }
+
+    .bond .circle{
+      position: absolute;
+      width: 56px;
+      height: 56px;
+      border: 3px solid #000;
+      border-radius: 999px;
+      background: #fff;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      font-size: 18px;
+      line-height: 1;
+      user-select: none;
+    }
+
+    .bond .circle.unknown{
+      background:
+        repeating-linear-gradient(
+          45deg,
+          #fff,
+          #fff 7px,
+          #000 7px,
+          #000 8px
+        );
+      text-shadow: 0 1px 0 #fff;
+    }
+
+    .bond .circle.whole{
+      left: 50%;
+      top: 0;
+      transform: translateX(-50%);
+    }
+
+    .bond .circle.part1{
+      left: 22%;
+      bottom: 0;
+      transform: translateX(-50%);
+    }
+
+    .bond .circle.part2{
+      left: 78%;
+      bottom: 0;
+      transform: translateX(-50%);
+    }
+
+    @media print{
+      body{ padding:0; }
+      .card{ break-inside: avoid; page-break-inside: avoid; }
+      .controls{ display:none; }
+      .top-controls{ display:none; }
+      .ws-controls{ display:none; }
+      .demo-section{ display:none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <div class="top-controls" aria-label="Worksheet options">
+      <label class="label">
+        <input id="unitDividersToggle" type="checkbox" checked />
+        Show unit dividers
+      </label>
+    </div>
+
+    <section class="card" aria-label="Part–Part–Whole worksheet">
+      <h2 class="ws-title">
+        <span>Part–Part–Whole Worksheet</span>
+        <span class="name">Name: <span class="line"></span></span>
+      </h2>
+
+      <form class="ws-controls" id="wsControls" onsubmit="return false;">
+        <label>
+          Whole min
+          <input id="wsWholeMin" type="number" min="1" max="10" value="3" />
+        </label>
+        <label>
+          Whole max
+          <input id="wsWholeMax" type="number" min="1" max="10" value="10" />
+        </label>
+        <label>
+          Items
+          <select id="wsCount">
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10" selected>10</option>
+            <option value="11">11</option>
+            <option value="12">12</option>
+          </select>
+        </label>
+        <label>
+          Blank
+          <select id="wsBlank">
+            <option value="part2" selected>part2</option>
+            <option value="part1">part1</option>
+            <option value="whole">whole</option>
+            <option value="none">none</option>
+          </select>
+        </label>
+        <label>
+          Seed (optional)
+          <input id="wsSeed" type="number" placeholder="e.g. 123" />
+        </label>
+        <label>
+          Allow 0
+          <select id="wsAllowZero">
+            <option value="false" selected>false</option>
+            <option value="true">true</option>
+          </select>
+        </label>
+        <button id="wsRegen" type="button" class="wide">Regenerate</button>
+      </form>
+
+      <div id="wsGrid" class="worksheet-grid" aria-label="Worksheet problems"></div>
+    </section>
+
+    <div class="demo-section">
+
+    <!-- 1) Part–Part–Whole -->
+    <section class="card">
+      <h2>1) Part–Part–Whole</h2>
+      <p class="prompt">“There are 3 apples and 5 apples. How many apples altogether?”</p>
+
+      <div class="model">
+        <div class="bar-row">
+          <div class="bar-label">Parts</div>
+          <div class="bar" aria-label="Parts bar">
+            <div class="seg" style="flex:3" data-units="3"><div class="units" aria-hidden="true"></div><span class="seg-text">3</span></div>
+            <div class="seg" style="flex:5" data-units="5"><div class="units" aria-hidden="true"></div><span class="seg-text">5</span></div>
+          </div>
+        </div>
+
+        <div class="bar-row">
+          <div class="bar-label">Whole</div>
+          <div class="bar" aria-label="Whole bar">
+            <div class="seg" style="flex:8" data-units="8"><div class="units" aria-hidden="true"></div><span class="seg-text">8</span></div>
+          </div>
+        </div>
+
+        <div class="bond-block" aria-label="Matching number bond">
+          <div class="bond-title">Number bond</div>
+          <div class="bond" aria-label="Number bond showing 3 and 5 make 8">
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+              <line x1="50" y1="28" x2="25" y2="72"></line>
+              <line x1="50" y1="28" x2="75" y2="72"></line>
+            </svg>
+            <div class="circle whole">8</div>
+            <div class="circle part1">3</div>
+            <div class="circle part2">5</div>
+          </div>
+        </div>
+      </div>
+
+      <p class="explain"><strong>Teaches:</strong> Two parts join to make one whole.</p>
+    </section>
+
+    <!-- 2) Missing value (unknown part) -->
+    <section class="card">
+      <h2>2) Missing Value (Unknown Part)</h2>
+      <p class="prompt">“Total is 9. One part is 4. What is the missing part?”</p>
+
+      <div class="model">
+        <div class="total-tag" aria-label="Total tag">Total = 9</div>
+
+        <div class="bar" aria-label="Unknown part bar">
+          <div class="seg" style="flex:4" data-units="4"><div class="units" aria-hidden="true"></div><span class="seg-text">4</span></div>
+          <!-- Unknown width deliberately neutral so it doesn't “give away” the answer -->
+          <div class="seg unknown" style="flex:4">?</div>
+        </div>
+
+        <div class="brace" aria-hidden="true">
+          <div class="line"></div>
+          <div class="text">parts make the total</div>
+          <div class="line"></div>
+        </div>
+
+        <div class="bond-block" aria-label="Matching number bond">
+          <div class="bond-title">Number bond</div>
+          <div class="bond" aria-label="Number bond showing 4 and unknown make 9">
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+              <line x1="50" y1="28" x2="25" y2="72"></line>
+              <line x1="50" y1="28" x2="75" y2="72"></line>
+            </svg>
+            <div class="circle whole">9</div>
+            <div class="circle part1">4</div>
+            <div class="circle part2 unknown">?</div>
+          </div>
+        </div>
+      </div>
+
+      <p class="explain"><strong>Teaches:</strong> If you know the total and one part, you can find the missing part.</p>
+    </section>
+
+    <!-- 3) Comparison -->
+    <section class="card">
+      <h2>3) Comparison (How Many More?)</h2>
+      <p class="prompt">“Ava has 7 stickers. Ben has 5 stickers. How many more does Ava have?”</p>
+
+      <div class="model">
+        <div class="bar-row">
+          <div class="bar-label">Ava</div>
+          <div class="bar" aria-label="Ava bar">
+            <div class="seg" style="flex:5" data-units="5"><div class="units" aria-hidden="true"></div><span class="seg-text">5</span></div>
+            <div class="seg unknown" style="flex:2">?</div>
+          </div>
+        </div>
+
+        <div class="bar-row">
+          <div class="bar-label">Ben</div>
+          <div class="bar" aria-label="Ben bar">
+            <div class="seg" style="flex:5" data-units="5"><div class="units" aria-hidden="true"></div><span class="seg-text">5</span></div>
+          </div>
+        </div>
+
+        <div class="total-tag" aria-label="Known bigger amount">Ava total = 7</div>
+
+        <div class="bond-block" aria-label="Matching number bond">
+          <div class="bond-title">Number bond</div>
+          <div class="bond" aria-label="Number bond showing 5 and unknown make 7">
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+              <line x1="50" y1="28" x2="25" y2="72"></line>
+              <line x1="50" y1="28" x2="75" y2="72"></line>
+            </svg>
+            <div class="circle whole">7</div>
+            <div class="circle part1">5</div>
+            <div class="circle part2 unknown">?</div>
+          </div>
+        </div>
+      </div>
+
+      <p class="explain"><strong>Teaches:</strong> The “extra” part shows the difference between two amounts.</p>
+    </section>
+
+    <!-- 4) Labeled total (single bar with label) -->
+    <section class="card">
+      <h2>4) Labeled Total</h2>
+      <p class="prompt">“We made 10 cookies. 6 are chocolate and the rest are vanilla.”</p>
+
+      <div class="model">
+        <div class="bar-row">
+          <div class="bar-label">Cookies</div>
+          <div class="bar" aria-label="Cookies bar">
+            <div class="seg" style="flex:6" data-units="6"><div class="units" aria-hidden="true"></div><span class="seg-text">6</span></div>
+            <div class="seg unknown" style="flex:4">?</div>
+          </div>
+        </div>
+
+        <div class="brace" aria-label="Total brace">
+          <div class="line"></div>
+          <div class="text">Total = 10</div>
+          <div class="line"></div>
+        </div>
+
+        <div class="bond-block" aria-label="Matching number bond">
+          <div class="bond-title">Number bond</div>
+          <div class="bond" aria-label="Number bond showing 6 and unknown make 10">
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+              <line x1="50" y1="28" x2="25" y2="72"></line>
+              <line x1="50" y1="28" x2="75" y2="72"></line>
+            </svg>
+            <div class="circle whole">10</div>
+            <div class="circle part1">6</div>
+            <div class="circle part2 unknown">?</div>
+          </div>
+        </div>
+      </div>
+
+      <p class="explain"><strong>Teaches:</strong> A total label helps children “see” the whole even when one part is unknown.</p>
+    </section>
+
+    <!-- 5) Optional interactive -->
+    <section class="card" id="interactiveCard">
+      <h2>5) Optional Interactive (Slide a Part)</h2>
+      <p class="prompt">“Make a total of 10. Slide the left part. What is the right part?”</p>
+
+      <div class="model">
+        <div class="bar" aria-label="Interactive bar total 10">
+          <div class="seg" id="p1Seg" style="flex:5" data-units="5"><div class="units" aria-hidden="true"></div><span class="seg-text">5</span></div>
+          <div class="seg unknown" id="p2Seg" style="flex:5">5</div>
+        </div>
+
+        <div class="brace" aria-hidden="true">
+          <div class="line"></div>
+          <div class="text">Total = 10</div>
+          <div class="line"></div>
+        </div>
+
+        <div class="controls">
+          <label>
+            Part
+            <input id="p1Range" type="range" min="0" max="10" value="5" />
+          </label>
+          <div class="pill" id="p1Pill" aria-label="Part value">5</div>
+          <div class="pill" id="p2Pill" aria-label="Missing part value">5</div>
+        </div>
+
+        <div class="bond-block" aria-label="Matching number bond">
+          <div class="bond-title">Number bond</div>
+          <div class="bond" aria-label="Number bond showing parts that make 10">
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+              <line x1="50" y1="28" x2="25" y2="72"></line>
+              <line x1="50" y1="28" x2="75" y2="72"></line>
+            </svg>
+            <div class="circle whole" id="bondWhole">10</div>
+            <div class="circle part1" id="bondPart1">5</div>
+            <div class="circle part2 unknown" id="bondPart2">5</div>
+          </div>
+        </div>
+      </div>
+
+      <p class="explain"><strong>Teaches:</strong> When the total stays the same, one part goes up and the other part goes down.</p>
+    </section>
+
+    </div>
+
+  </div>
+
+<script>
+  // ---------- Part–Part–Whole worksheet generator ----------
+  function mulberry32(seed) {
+    let t = seed >>> 0;
+    return function () {
+      t += 0x6D2B79F5;
+      let x = t;
+      x = Math.imul(x ^ (x >>> 15), x | 1);
+      x ^= x + Math.imul(x ^ (x >>> 7), x | 61);
+      return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function randInt(rand, min, max) {
+    return min + Math.floor(rand() * (max - min + 1));
+  }
+
+  function generateProblems({ wholeMin, wholeMax, count, allowZero, rand }) {
+    const lo = Math.max(1, Math.min(wholeMin, wholeMax));
+    const hi = Math.max(1, Math.max(wholeMin, wholeMax));
+    const problems = [];
+    for (let i = 0; i < count; i++) {
+      const whole = randInt(rand, lo, hi);
+      const partLo = allowZero ? 0 : Math.min(1, whole);
+      const partHi = allowZero ? whole : Math.max(0, whole - 1);
+      const part1 = whole === 0 ? 0 : randInt(rand, partLo, Math.max(partLo, partHi));
+      const part2 = whole - part1;
+      problems.push({ whole, part1, part2 });
+    }
+    return problems;
+  }
+
+  function isBlank(v) {
+    return v === null || v === undefined;
+  }
+
+  function dispVal(v) {
+    return isBlank(v) ? '?' : String(v);
+  }
+
+  function applyBlank(problem, blank) {
+    const p = { ...problem };
+    if (blank === 'part1') p.part1 = null;
+    else if (blank === 'part2') p.part2 = null;
+    else if (blank === 'whole') p.whole = null;
+    return p;
+  }
+
+  function segHTML(value) {
+    if (isBlank(value)) {
+      return `<div class="seg unknown" style="flex:1">?</div>`;
+    }
+    const flex = Math.max(1, value);
+    return `<div class="seg" style="flex:${flex}" data-units="${value}"><div class="units" aria-hidden="true"></div><span class="seg-text">${value}</span></div>`;
+  }
+
+  function wholeSegHTML(value) {
+    if (isBlank(value)) {
+      return `<div class="seg unknown" style="flex:1">?</div>`;
+    }
+    const flex = Math.max(1, value);
+    return `<div class="seg" style="flex:${flex}" data-units="${value}"><div class="units" aria-hidden="true"></div><span class="seg-text">${value}</span></div>`;
+  }
+
+  function itemHTML(problem, index) {
+    const w = problem.whole;
+    const a = problem.part1;
+    const b = problem.part2;
+    return `
+      <div class="ws-item">
+        <div class="q-num">${index + 1})</div>
+        <div class="model">
+          <div class="bar-row">
+            <div class="bar-label">Parts</div>
+            <div class="bar" aria-label="Parts bar">
+              ${segHTML(a)}
+              ${segHTML(b)}
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Whole</div>
+            <div class="bar" aria-label="Whole bar">
+              ${wholeSegHTML(w)}
+            </div>
+          </div>
+          <div class="bond-block" aria-label="Matching number bond">
+            <div class="bond-title">Number bond</div>
+            <div class="bond" aria-label="Number bond">
+              <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                <line x1="50" y1="28" x2="25" y2="72"></line>
+                <line x1="50" y1="28" x2="75" y2="72"></line>
+              </svg>
+              <div class="circle whole ${isBlank(w) ? 'unknown' : ''}">${dispVal(w)}</div>
+              <div class="circle part1 ${isBlank(a) ? 'unknown' : ''}">${dispVal(a)}</div>
+              <div class="circle part2 ${isBlank(b) ? 'unknown' : ''}">${dispVal(b)}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  const wsGrid = document.getElementById('wsGrid');
+  const wsWholeMin = document.getElementById('wsWholeMin');
+  const wsWholeMax = document.getElementById('wsWholeMax');
+  const wsCount = document.getElementById('wsCount');
+  const wsBlank = document.getElementById('wsBlank');
+  const wsSeed = document.getElementById('wsSeed');
+  const wsAllowZero = document.getElementById('wsAllowZero');
+  const wsRegen = document.getElementById('wsRegen');
+
+  function regenerateWorksheet() {
+    const wholeMin = Number(wsWholeMin.value);
+    const wholeMax = Number(wsWholeMax.value);
+    const count = Number(wsCount.value);
+    const blank = wsBlank.value;
+    const allowZero = wsAllowZero.value === 'true';
+    const seedRaw = wsSeed.value;
+    const rand = seedRaw === '' ? Math.random : mulberry32(Number(seedRaw));
+
+    const problems = generateProblems({ wholeMin, wholeMax, count, allowZero, rand })
+      .map((p) => applyBlank(p, blank));
+
+    wsGrid.innerHTML = problems.map(itemHTML).join('');
+    syncUnitDividers();
+    applyUnitDividerToggle();
+  }
+
+  // ---------- Interactive demo (keeps total fixed at 10) ----------
+  const TOTAL = 10;
+  const p1Range = document.getElementById('p1Range');
+  const p1Seg = document.getElementById('p1Seg');
+  const p2Seg = document.getElementById('p2Seg');
+  const p1Pill = document.getElementById('p1Pill');
+  const p2Pill = document.getElementById('p2Pill');
+  const bondWhole = document.getElementById('bondWhole');
+  const bondPart1 = document.getElementById('bondPart1');
+  const bondPart2 = document.getElementById('bondPart2');
+  const unitDividersToggle = document.getElementById('unitDividersToggle');
+
+  function ensureUnitDividers(segEl, units) {
+    if (!segEl) return;
+    const n = Math.max(0, Math.min(10, Math.floor(Number(units))));
+    segEl.dataset.units = String(n);
+    const unitsEl = segEl.querySelector('.units');
+    if (!unitsEl) return;
+
+    const existing = unitsEl.children.length;
+    if (existing === n) return;
+
+    unitsEl.innerHTML = '';
+    for (let i = 0; i < n; i++) {
+      const u = document.createElement('div');
+      u.className = 'unit';
+      unitsEl.appendChild(u);
+    }
+  }
+
+  function syncUnitDividers() {
+    document.querySelectorAll('.seg[data-units]').forEach((seg) => {
+      ensureUnitDividers(seg, seg.dataset.units);
+    });
+  }
+
+  function applyUnitDividerToggle() {
+    document.body.classList.toggle('show-units', unitDividersToggle.checked);
+  }
+
+  function setSegText(segEl, value) {
+    if (!segEl) return;
+    const textEl = segEl.querySelector('.seg-text');
+    if (textEl) textEl.textContent = String(value);
+    else segEl.textContent = String(value);
+  }
+
+  function updateInteractive() {
+    const p1 = Number(p1Range.value);
+    const p2 = TOTAL - p1;
+
+    const hideP1 = p1 === 0;
+    const hideP2 = p2 === 0;
+
+    // Update text
+    setSegText(p1Seg, p1);
+    p2Seg.textContent = String(p2);
+
+    // Show only the non-zero segment(s)
+    p1Seg.style.display = hideP1 ? 'none' : '';
+    p2Seg.style.display = hideP2 ? 'none' : '';
+
+    // Flex values mirror the numbers (no forced minimum that would show a visible 0 segment)
+    if (!hideP1) p1Seg.style.flex = String(p1);
+    if (!hideP2) p2Seg.style.flex = String(p2);
+
+    // If only p1 is showing, remove its right border so it doesn't look split
+    p1Seg.style.borderRight = hideP2 ? 'none' : '';
+
+    p1Pill.textContent = String(p1);
+    p2Pill.textContent = String(p2);
+
+    // Unit dividers only on known segment (p1Seg)
+    ensureUnitDividers(p1Seg, p1);
+
+    // Number bond updates
+    bondWhole.textContent = String(TOTAL);
+    bondPart1.textContent = String(p1);
+    bondPart2.textContent = String(p2);
+  }
+
+  unitDividersToggle.addEventListener('change', applyUnitDividerToggle);
+  wsRegen.addEventListener('click', regenerateWorksheet);
+
+  regenerateWorksheet();
+  syncUnitDividers();
+  applyUnitDividerToggle();
+
+  p1Range.addEventListener('input', updateInteractive);
+  updateInteractive();
+</script>
+</body>
+</html>

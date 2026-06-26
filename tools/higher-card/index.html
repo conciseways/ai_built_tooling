@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Higher Card</title>
+  <meta name="description" content="Tap the higher, lower, or equal card." />
+  <meta name="theme-color" content="#2f51a8" />
+  <link rel="manifest" href="../manifest.json" />
+  <link rel="icon" href="../icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="../icons/apple-touch-icon-180.png" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Higher Card" />
+  <link rel="stylesheet" href="../playing-cards/cards.css" />
+  <link rel="stylesheet" href="game.css" />
+</head>
+<body>
+  <!-- SETUP -->
+  <section id="setup" class="view view--setup">
+    <h1><a class="home-link" href="../index.html" title="Back to games">Higher Card</a></h1>
+    <p class="lead">Two cards appear. Tap the one with the higher value!</p>
+
+    <div class="options">
+      <label class="option">
+        <input id="includeFaceCards" type="checkbox" />
+        Include face cards (J, Q, K)
+      </label>
+
+      <label class="option">
+        <input id="advanced" type="checkbox" />
+        Advanced mode (random bigger / smaller / equal)
+      </label>
+
+      <fieldset class="option-group">
+        <legend>Aces are</legend>
+        <label><input type="radio" name="aces" value="low" checked /> Low (A = 1)</label>
+        <label><input type="radio" name="aces" value="high" /> High (A beats K)</label>
+      </fieldset>
+
+      <label class="seed">
+        Seed (optional, for the same order each time)
+        <input id="seed" type="number" placeholder="e.g. 7" />
+      </label>
+    </div>
+
+    <button id="startBtn" type="button" class="big-btn">Start game</button>
+  </section>
+
+  <!-- PLAY -->
+  <section id="play" class="view view--play" hidden>
+    <div class="topbar">
+      <span id="progress" class="progress"></span>
+      <div class="topbar__right">
+        <span id="score" class="score"></span>
+        <button id="restartBtn" type="button">Restart</button>
+      </div>
+    </div>
+
+    <div id="playArea" class="play-area">
+      <div class="pa-top">
+        <p id="prompt" class="prompt" aria-live="polite"></p>
+        <p id="feedback" class="feedback" aria-live="polite"></p>
+      </div>
+
+      <div class="cards-row">
+        <button id="slotLeft" class="slot pick" type="button" aria-label="Left card"></button>
+        <div class="center-col">
+          <div class="vs">vs</div>
+          <button id="slotEqual" class="equal-btn pick" type="button" hidden>= Equal</button>
+        </div>
+        <button id="slotRight" class="slot pick" type="button" aria-label="Right card"></button>
+      </div>
+
+      <p id="hint" class="hint">Tap the higher card</p>
+    </div>
+  </section>
+
+  <!-- OVER -->
+  <section id="over" class="view view--over" hidden>
+    <h1>Game over! &#127881;</h1>
+    <p id="finalScore" class="lead"></p>
+    <p class="lead"><a class="home-link" href="../index.html">&#8592; Back to games</a></p>
+    <button id="playAgainBtn" type="button" class="big-btn">Play again</button>
+  </section>
+
+  <script type="module" src="game.js"></script>
+  <script type="module" src="../pwa.js"></script>
+</body>
+</html>

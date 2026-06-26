@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Playing Cards - Tests</title>
+  <style>
+    body { font-family: system-ui, sans-serif; padding: 20px; }
+    .pass { color: #0a7d28; }
+    .fail { color: #c8102e; font-weight: 700; }
+    li { margin: 2px 0; font-family: ui-monospace, monospace; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <h1>Playing Cards - Tests</h1>
+  <p>Results below and in the console.</p>
+  <ul id="results"></ul>
+
+  <script type="module">
+    import {
+      createDeck, shuffle, filterDeck, mulberry32, parseId,
+      withoutFaceCards, withoutJokers, RANKS, SUITS
+    } from './deck.js';
+
+    const results = document.getElementById('results');
+    let passed = 0, failed = 0;
+
+    function assert(name, cond) {
+      const li = document.createElement('li');
+      li.className = cond ? 'pass' : 'fail';
+      li.textContent = `${cond ? 'PASS' : 'FAIL'} - ${name}`;
+      results.appendChild(li);
+      cond ? passed++ : failed++;
+      if (!cond) console.error('FAIL:', name);
+    }
+
+    function multiset(deck) {
+      return deck.map((c) => c.id).sort().join(',');
+    }
+
+    // Deck size
+    assert('createDeck() has 52 cards', createDeck().length === 52);
+    assert('createDeck({jokers:2}) has 54 cards', createDeck({ jokers: 2 }).length === 54);
+
+    // Canonical content
+    const deck = createDeck();
+    assert('13 ranks x 4 suits covered',
+      RANKS.length === 13 && SUITS.length === 4 &&
+      new Set(deck.map((c) => c.id)).size === 52);
+
+    // Shuffle preserves the multiset
+    const shuffled = shuffle(deck, mulberry32(1));
+    assert('shuffle preserves the multiset', multiset(deck) === multiset(shuffled));
+    assert('shuffle is non-mutating', multiset(deck) === multiset(createDeck()));
+
+    // Seeded shuffle is reproducible
+    const a = shuffle(deck, mulberry32(123));
+    const b = shuffle(deck, mulberry32(123));
+    assert('seeded shuffle is deterministic',
+      a.map((c) => c.id).join(',') === b.map((c) => c.id).join(','));
+
+    // Filters
+    assert('withoutFaceCards removes 12 cards',
+      withoutFaceCards(deck).length === 40);
+    assert('no jacks removes exactly 4',
+      filterDeck(deck, { excludeRanks: ['J'] }).length === 48);
+    assert('no hearts removes exactly 13',
+      filterDeck(deck, { excludeSuits: ['hearts'] }).length === 39);
+    assert('withoutJokers keeps 52 when jokers present',
+      withoutJokers(createDeck({ jokers: 2 })).length === 52);
+    assert('onlySuits allowlist works',
+      filterDeck(deck, { onlySuits: ['spades'] }).length === 13);
+
+    // id round-trip
+    assert('parseId round-trips ids',
+      deck.every((c) => parseId(c.id).id === c.id));
+    assert('parseId handles D10', parseId('D10').rank === '10');
+    assert('parseId handles jokers', parseId('JOKER_RED').isJoker === true);
+
+    // Derived flags
+    assert('Ace value low by default', parseId('SA').value === 1);
+    assert('Ace value high when aceHigh', parseId('SA', { aceHigh: true }).value === 14);
+    assert('King isFace', parseId('SK').isFace === true);
+    assert('hearts is red', parseId('H5').color === 'red');
+
+    const summary = document.createElement('h3');
+    summary.textContent = `${passed} passed, ${failed} failed`;
+    summary.className = failed ? 'fail' : 'pass';
+    document.body.appendChild(summary);
+    console.log(`Tests: ${passed} passed, ${failed} failed`);
+  </script>
+</body>
+</html>

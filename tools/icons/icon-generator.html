@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Icon Generator</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #0c1330; color: #fff; padding: 24px; }
+    h1 { font-size: 22px; }
+    button { font: inherit; font-weight: 700; padding: 10px 18px; border-radius: 10px;
+             border: none; background: #ffd54a; color: #222; cursor: pointer; margin: 6px 0; }
+    .row { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 16px; }
+    figure { margin: 0; text-align: center; }
+    canvas { background: #fff2; border-radius: 12px; }
+    figcaption { font-size: 12px; opacity: 0.8; margin-top: 6px; }
+    p { max-width: 640px; line-height: 1.5; opacity: 0.9; }
+  </style>
+</head>
+<body>
+  <h1>Math Card Games — Icon Generator</h1>
+  <p>
+    Renders PNG icons from <code>icon.svg</code> for the manifest and iOS.
+    Click <strong>Generate</strong>, then <strong>Download all</strong>, and place the
+    files in this <code>icons/</code> folder. Filenames match
+    <code>manifest.json</code>: <code>icon-192.png</code>, <code>icon-512.png</code>,
+    <code>icon-maskable-512.png</code>, plus <code>apple-touch-icon-180.png</code> for iOS.
+  </p>
+
+  <button id="gen">Generate</button>
+  <button id="dl">Download all</button>
+
+  <div class="row" id="out"></div>
+
+  <script>
+    // Each entry: filename, pixel size, and whether to add maskable safe-zone padding.
+    const TARGETS = [
+      { name: 'icon-192.png', size: 192, pad: 0 },
+      { name: 'icon-512.png', size: 512, pad: 0 },
+      { name: 'icon-maskable-512.png', size: 512, pad: 0.10 },
+      { name: 'apple-touch-icon-180.png', size: 180, pad: 0 }
+    ];
+
+    const out = document.getElementById('out');
+    const canvases = {};
+
+    async function loadSvg() {
+      const res = await fetch('icon.svg');
+      const text = await res.text();
+      const blob = new Blob([text], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+      await new Promise((ok, err) => { img.onload = ok; img.onerror = err; img.src = url; });
+      return img;
+    }
+
+    async function generate() {
+      out.innerHTML = '';
+      const img = await loadSvg();
+      for (const t of TARGETS) {
+        const c = document.createElement('canvas');
+        c.width = c.height = t.size;
+        const ctx = c.getContext('2d');
+        // Fill background so non-maskable icons are fully opaque.
+        ctx.fillStyle = '#0c1330';
+        ctx.fillRect(0, 0, t.size, t.size);
+        const inset = Math.round(t.size * t.pad);
+        ctx.drawImage(img, inset, inset, t.size - inset * 2, t.size - inset * 2);
+
+        const fig = document.createElement('figure');
+        const disp = c.cloneNode(true);
+        disp.getContext('2d').drawImage(c, 0, 0);
+        disp.style.width = Math.min(t.size, 160) + 'px';
+        disp.style.height = disp.style.width;
+        fig.appendChild(disp);
+        const cap = document.createElement('figcaption');
+        cap.textContent = `${t.name} (${t.size}px)`;
+        fig.appendChild(cap);
+        out.appendChild(fig);
+
+        canvases[t.name] = c;
+      }
+    }
+
+    function downloadAll() {
+      for (const [name, c] of Object.entries(canvases)) {
+        const a = document.createElement('a');
+        a.download = name;
+        a.href = c.toDataURL('image/png');
+        a.click();
+      }
+    }
+
+    document.getElementById('gen').addEventListener('click', generate);
+    document.getElementById('dl').addEventListener('click', downloadAll);
+    generate();
+  </script>
+</body>
+</html>

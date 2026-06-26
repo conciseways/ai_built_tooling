@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Playing Cards</title>
+  <link rel="stylesheet" href="cards.css" />
+  <style>
+    body {
+      margin: 0;
+      padding: 18px;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: #0f5132;
+      color: #fff;
+    }
+
+    h1 { margin: 0 0 4px; font-size: 22px; }
+    .sub { margin: 0 0 16px; opacity: 0.85; font-size: 13px; }
+
+    .panel {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 18px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      align-items: end;
+    }
+
+    label { display: grid; gap: 4px; font-size: 12px; font-weight: 700; }
+
+    input, select, button {
+      font: inherit;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background: #fff;
+      color: #000;
+    }
+
+    button { cursor: pointer; font-weight: 700; }
+    .checks { display: flex; flex-wrap: wrap; gap: 10px; grid-column: 1 / -1; }
+    .checks label { flex-direction: row; align-items: center; gap: 6px; }
+
+    section { margin-bottom: 28px; }
+    section h2 { font-size: 16px; border-bottom: 1px solid rgba(255,255,255,0.25); padding-bottom: 6px; }
+
+    .count { font-size: 12px; opacity: 0.85; }
+
+    .variants-row .card { --card-w: 120px; }
+  </style>
+</head>
+<body>
+  <h1>Playing Cards</h1>
+  <p class="sub">Reusable deck utilities (<code>deck.js</code>) + CSS/SVG rendering (<code>render.js</code>).</p>
+
+  <div class="panel">
+    <label>
+      Seed (optional)
+      <input id="seed" type="number" placeholder="e.g. 42" />
+    </label>
+    <label>
+      Jokers
+      <select id="jokers">
+        <option value="0" selected>0</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+      </select>
+    </label>
+    <label>
+      Face variant
+      <select id="variant">
+        <option value="standard" selected>Standard (auto specials)</option>
+        <option value="oneEyed">One-eyed (all profiles)</option>
+        <option value="suicideKing">Suicide King</option>
+      </select>
+    </label>
+    <label>
+      Card size
+      <input id="size" type="range" min="80" max="200" value="130" />
+    </label>
+
+    <div class="checks">
+      <label><input type="checkbox" id="noFace" /> No face cards</label>
+      <label><input type="checkbox" id="noJacks" /> No jacks</label>
+      <label><input type="checkbox" id="noHearts" /> No hearts</label>
+      <label><input type="checkbox" id="faceDown" /> Face down</label>
+    </div>
+
+    <div class="checks">
+      <button id="shuffleBtn" type="button">Shuffle</button>
+      <button id="resetBtn" type="button">Reset order</button>
+    </div>
+  </div>
+
+  <section>
+    <h2>Deck <span id="deckCount" class="count"></span></h2>
+    <div id="deck" class="card-grid"></div>
+  </section>
+
+  <section>
+    <h2>Face-card variants</h2>
+    <div id="variants" class="card-row variants-row"></div>
+  </section>
+
+  <script type="module">
+    import {
+      createDeck, shuffle, filterDeck, mulberry32, parseId
+    } from './deck.js';
+    import { renderDeck, renderCardHTML } from './render.js';
+
+    const els = {
+      seed: document.getElementById('seed'),
+      jokers: document.getElementById('jokers'),
+      variant: document.getElementById('variant'),
+      size: document.getElementById('size'),
+      noFace: document.getElementById('noFace'),
+      noJacks: document.getElementById('noJacks'),
+      noHearts: document.getElementById('noHearts'),
+      faceDown: document.getElementById('faceDown'),
+      shuffleBtn: document.getElementById('shuffleBtn'),
+      resetBtn: document.getElementById('resetBtn'),
+      deck: document.getElementById('deck'),
+      deckCount: document.getElementById('deckCount'),
+      variants: document.getElementById('variants')
+    };
+
+    let shuffled = false;
+
+    function buildDeck() {
+      let deck = createDeck({ jokers: Number(els.jokers.value) });
+
+      deck = filterDeck(deck, {
+        excludeFaceCards: els.noFace.checked,
+        excludeRanks: els.noJacks.checked ? ['J'] : [],
+        excludeSuits: els.noHearts.checked ? ['hearts'] : []
+      });
+
+      if (shuffled) {
+        const seedRaw = els.seed.value;
+        const rng = seedRaw === '' ? Math.random : mulberry32(Number(seedRaw));
+        deck = shuffle(deck, rng);
+      }
+      return deck;
+    }
+
+    function applySize() {
+      document.documentElement.style.setProperty('--card-w', els.size.value + 'px');
+    }
+
+    function renderAll() {
+      applySize();
+      const deck = buildDeck();
+      renderDeck(deck, els.deck, {
+        layout: 'grid',
+        faceVariant: els.variant.value,
+        faceDown: els.faceDown.checked
+      });
+      els.deckCount.textContent = `(${deck.length} cards)`;
+    }
+
+    function renderVariants() {
+      // Showcase: standard J/Q/K + the famous specials.
+      const showcase = [
+        { id: 'SJ', variant: 'oneEyed' },   // one-eyed jack of spades
+        { id: 'HJ', variant: 'oneEyed' },   // one-eyed jack of hearts
+        { id: 'HQ', variant: 'standard' },
+        { id: 'HK', variant: 'suicideKing' }, // suicide king
+        { id: 'DK', variant: 'oneEyed' },   // one-eyed king of diamonds
+        { id: 'SK', variant: 'standard' }
+      ];
+      els.variants.innerHTML = showcase
+        .map(({ id, variant }) => renderCardHTML(parseId(id), { faceVariant: variant }))
+        .join('');
+    }
+
+    els.shuffleBtn.addEventListener('click', () => { shuffled = true; renderAll(); });
+    els.resetBtn.addEventListener('click', () => { shuffled = false; renderAll(); });
+    [els.jokers, els.variant, els.noFace, els.noJacks, els.noHearts, els.faceDown]
+      .forEach((el) => el.addEventListener('change', renderAll));
+    els.seed.addEventListener('input', () => { if (shuffled) renderAll(); });
+    els.size.addEventListener('input', renderAll);
+
+    renderAll();
+    renderVariants();
+  </script>
+</body>
+</html>

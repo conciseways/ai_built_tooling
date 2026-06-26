@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Card Adder</title>
+  <meta name="description" content="Practice adding two playing cards." />
+  <meta name="theme-color" content="#0f5132" />
+  <link rel="manifest" href="../manifest.json" />
+  <link rel="icon" href="../icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="../icons/apple-touch-icon-180.png" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Card Adder" />
+  <link rel="stylesheet" href="../playing-cards/cards.css" />
+  <link rel="stylesheet" href="game.css" />
+</head>
+<body>
+  <!-- SETUP -->
+  <section id="setup" class="view view--setup">
+    <h1><a class="home-link" href="../index.html" title="Back to games">Card Adder</a></h1>
+    <p class="lead">Pick a card to practice adding. It stays on the left all game.</p>
+
+    <label class="option">
+      <input id="includeFaceCards" type="checkbox" />
+      Include face cards (J, Q, K)
+    </label>
+
+    <div id="picker" class="picker"></div>
+
+    <label class="seed">
+      Seed (optional, for the same order each time)
+      <input id="seed" type="number" placeholder="e.g. 7" />
+    </label>
+  </section>
+
+  <!-- PLAY -->
+  <section id="play" class="view view--play" hidden>
+    <div class="topbar">
+      <span id="progress" class="progress"></span>
+      <div class="topbar__right">
+        <label class="answer-toggle">
+          <input id="showAnswer" type="checkbox" />
+          Show answer
+        </label>
+        <button id="restartBtn" type="button">Restart</button>
+      </div>
+    </div>
+
+    <div id="playArea" class="play-area" role="button" tabindex="0"
+         aria-label="Tap to show the next card">
+      <div id="compareSlot" class="slot"></div>
+      <div id="sum" class="sum">+</div>
+      <div id="currentSlot" class="slot"></div>
+      <p class="hint">Tap anywhere for the next card</p>
+    </div>
+  </section>
+
+  <!-- OVER -->
+  <section id="over" class="view view--over" hidden>
+    <h1>All done! &#127881;</h1>
+    <p class="lead">You went through the whole deck.</p>
+    <p class="lead"><a class="home-link" href="../index.html">&#8592; Back to games</a></p>
+    <button id="playAgainBtn" type="button" class="big-btn">Play again</button>
+  </section>
+
+  <script type="module" src="game.js"></script>
+  <script type="module" src="../pwa.js"></script>
+</body>
+</html>
