@@ -1,0 +1,18 @@
+{
+  "name": "@conciseways/playing-cards",
+  "version": "1.0.0",
+  "description": "Reusable playing card deck, rendering, and CSS",
+  "main": "deck.js",
+  "type": "module",
+  "files": [
+    "deck.js",
+    "render.js",
+    "faces.js",
+    "suits.js",
+    "cards.css",
+    "index.html",
+    "test.html",
+    "README.md"
+  ],
+  "license": "MIT"
+}

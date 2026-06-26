@@ -12,6 +12,7 @@
     "build": "lerna run build",
     "bootstrap": "lerna bootstrap",
     "clean": "lerna clean",
+    "sync:playing-cards": "node scripts/sync-playing-cards.js",
     "new-package": "node scripts/create-package.js"
   },
   "keywords": [
